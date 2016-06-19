@@ -1,0 +1,36 @@
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    mavenCentral()
+}
+
+//Dependencies for the project
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'com.amazonaws:aws-lambda-java-core:1.1.0'
+    compile 'com.amazonaws:aws-lambda-java-events:1.1.0'
+    compile 'mysql:mysql-connector-java:6.0.2'
+    compile 'com.google.inject:guice:4.1.0'
+
+    testCompile 'org.testng:testng:6.9.10'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+}
+
+test {
+    useTestNG()
+}
+
+/**
+ * Creates a zip file with all dependencies into build/dists directory.
+ */
+task buildZip(type: Zip) {
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtime
+    }
+}
+build.dependsOn buildZip
