@@ -5,6 +5,8 @@
 
 ## IDEA files
 .idea/
+*.iml
+*.ipr
 
 ## File-based project format:
 *.iws
