@@ -1,8 +1,9 @@
 package info.doseamigos.meds;
 
 import info.doseamigos.amigousers.AmigoUser;
-
-import java.util.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import static java.util.Objects.requireNonNull;
 
@@ -14,8 +15,11 @@ import static java.util.Objects.requireNonNull;
 public class Med {
     private long medId;
     private AmigoUser user;
-    private long rxcui;
+    private Long rxcui;
     private String name;
+
+    public Med() {
+    }
 
     public Med(
         long medId,
@@ -45,11 +49,11 @@ public class Med {
         this.user = requireNonNull(user);
     }
 
-    public long getRxcui() {
+    public Long getRxcui() {
         return rxcui;
     }
 
-    public void setRxcui(long rxcui) {
+    public void setRxcui(Long rxcui) {
         this.rxcui = rxcui;
     }
 
@@ -63,28 +67,16 @@ public class Med {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Med med = (Med) o;
-        return medId == med.medId &&
-            rxcui == med.rxcui &&
-            Objects.equals(user, med.user) &&
-            Objects.equals(name, med.name);
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(medId, user, rxcui, name);
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("Med{");
-        sb.append("medId=").append(medId);
-        sb.append(", user=").append(user);
-        sb.append(", rxcui=").append(rxcui);
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return ToStringBuilder.reflectionToString(this);
     }
 }

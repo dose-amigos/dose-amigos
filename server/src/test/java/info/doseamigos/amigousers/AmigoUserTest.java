@@ -5,9 +5,8 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Simple POJO test, make sure that getters and setters do as expected and equals method returns
- * what is expected.  I figure for small classes, this is easy enough, but larger classes might
- * not need 100 percent coverage.
+ * Simple POJO test.  Tests that all setters work with both null and nonnull objects,
+ * getters return what was set previously, and the equals, hashcode, and toString methods.
  */
 public class AmigoUserTest {
 
@@ -80,12 +79,4 @@ public class AmigoUserTest {
         assertNotEquals(user1.hashCode(), user2.hashCode());
     }
 
-    @Test
-    public void testToString() throws Exception {
-        AmigoUser user = new AmigoUser();
-        user.setName("test");
-        user.setAmigoUserId(1);
-
-        assertEquals(user.toString(), "AmigoUser{amigoUserId=1, name='test'}");
-    }
 }

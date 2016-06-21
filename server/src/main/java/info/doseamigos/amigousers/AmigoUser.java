@@ -1,6 +1,8 @@
 package info.doseamigos.amigousers;
 
-import java.util.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import static java.util.Objects.requireNonNull;
 
@@ -40,24 +42,16 @@ public class AmigoUser {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AmigoUser amigoUser = (AmigoUser) o;
-        return amigoUserId == amigoUser.amigoUserId &&
-            Objects.equals(name, amigoUser.name);
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(amigoUserId, name);
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("AmigoUser{");
-        sb.append("amigoUserId=").append(amigoUserId);
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return ToStringBuilder.reflectionToString(this);
     }
 }

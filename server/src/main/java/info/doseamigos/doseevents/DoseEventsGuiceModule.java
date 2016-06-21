@@ -3,7 +3,7 @@ package info.doseamigos.doseevents;
 import com.google.inject.AbstractModule;
 
 /**
- * Created by jking31cs on 6/20/16.
+ * Guice Module that binds specifically DoseEvents related Services/Daos.
  */
 public class DoseEventsGuiceModule extends AbstractModule {
     @Override

@@ -1,8 +1,9 @@
 package info.doseamigos.authusers;
 
 import info.doseamigos.amigousers.AmigoUser;
-
-import java.util.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import static java.util.Objects.requireNonNull;
 
@@ -41,26 +42,16 @@ public class AuthUser {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AuthUser authUser = (AuthUser) o;
-        return authUserId == authUser.authUserId &&
-            Objects.equals(amigoUser, authUser.amigoUser) &&
-            Objects.equals(email, authUser.email);
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(authUserId, amigoUser, email);
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("AuthUser{");
-        sb.append("authUserId=").append(authUserId);
-        sb.append(", amigoUser=").append(amigoUser);
-        sb.append(", email='").append(email).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return ToStringBuilder.reflectionToString(this);
     }
 }

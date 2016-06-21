@@ -1,13 +1,11 @@
 package info.doseamigos.doseevents;
 
-import com.amazonaws.util.DateUtils;
 import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.authusers.AuthUser;
 import info.doseamigos.meds.Med;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**

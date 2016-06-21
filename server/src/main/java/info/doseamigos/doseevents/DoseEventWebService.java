@@ -15,7 +15,6 @@ public class DoseEventWebService {
 
     private final DoseEventService service;
 
-
     public DoseEventWebService() {
         Injector injector = Guice.createInjector(
             new DoseEventsGuiceModule()
