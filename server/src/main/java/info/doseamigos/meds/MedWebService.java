@@ -10,10 +10,13 @@ import com.google.inject.Injector;
  */
 public class MedWebService {
 
+    private MedService medService;
+
     public MedWebService() {
         Injector injector = Guice.createInjector(
-            //TODO add modules.
+            new MedGuiceModule()
         );
+        this.medService = injector.getInstance(MedService.class);
     }
 
     /**
@@ -27,7 +30,6 @@ public class MedWebService {
         logger.log("Calling create/update Med");
         logger.log("Input: " + medInfo);
 
-        medInfo.setMedId(1);
-        return medInfo;
+        return medService.updateMed(medInfo);
     }
 }

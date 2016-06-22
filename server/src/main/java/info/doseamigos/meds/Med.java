@@ -5,6 +5,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.Date;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -17,6 +19,14 @@ public class Med {
     private AmigoUser user;
     private Long rxcui;
     private String name;
+    private int doseAmount;
+    private String doseUnit;
+    private int totalAmount;
+    private String doseInstructions;
+    private Date firstTaken;
+    private Date lastTaken;
+    private Date nextScheduled;
+    private boolean active = true; //Default to active.
 
     public Med() {
     }
@@ -62,7 +72,71 @@ public class Med {
     }
 
     public void setName(String name) {
-        this.name = requireNonNull(name);
+        this.name = name;
+    }
+
+    public int getDoseAmount() {
+        return doseAmount;
+    }
+
+    public void setDoseAmount(int doseAmount) {
+        this.doseAmount = doseAmount;
+    }
+
+    public String getDoseUnit() {
+        return doseUnit;
+    }
+
+    public void setDoseUnit(String doseUnit) {
+        this.doseUnit = doseUnit;
+    }
+
+    public int getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(int totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public String getDoseInstructions() {
+        return doseInstructions;
+    }
+
+    public void setDoseInstructions(String doseInstructions) {
+        this.doseInstructions = doseInstructions;
+    }
+
+    public Date getFirstTaken() {
+        return firstTaken;
+    }
+
+    public void setFirstTaken(Date firstTaken) {
+        this.firstTaken = firstTaken;
+    }
+
+    public Date getLastTaken() {
+        return lastTaken;
+    }
+
+    public void setLastTaken(Date lastTaken) {
+        this.lastTaken = lastTaken;
+    }
+
+    public Date getNextScheduled() {
+        return nextScheduled;
+    }
+
+    public void setNextScheduled(Date nextScheduled) {
+        this.nextScheduled = nextScheduled;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     @Override
