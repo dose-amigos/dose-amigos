@@ -56,10 +56,10 @@ public class MedTest {
         assertEquals(med.getName(), "Test Drug");
     }
 
-//    @Test(expectedExceptions = NullPointerException.class)
-//    public void testSetName() throws Exception {
-//        new Med().setName(null);
-//    }
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testSetName() throws Exception {
+        new Med().setName(null);
+    }
 
     @Test
     public void testEquals() throws Exception {

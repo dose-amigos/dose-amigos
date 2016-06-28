@@ -10,7 +10,6 @@ import org.apache.http.impl.client.HttpClients;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,14 +41,14 @@ public class DefaultAuthUserService implements AuthUserService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        AuthUser toRet = authUserDao.getByGoogleRef(new BigInteger((String) infoFromGoogle.get("id")));
+        AuthUser toRet = authUserDao.getByGoogleRef((String) infoFromGoogle.get("id"));
         if (toRet == null) {
             AmigoUser amigoUser= new AmigoUser();
             amigoUser.setName((String) infoFromGoogle.get("name"));
             AuthUser authUser = new AuthUser();
             authUser.setAmigoUser(amigoUser);
             authUser.setEmail((String) infoFromGoogle.get("email"));
-            authUser.setGoogleRef(new BigInteger((String) infoFromGoogle.get("id")));
+            authUser.setGoogleRef((String) infoFromGoogle.get("id"));
             try {
                 Long newId = authUserDao.save(authUser);
                 toRet = authUserDao.getById(newId);

@@ -72,7 +72,7 @@ public class Med {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = requireNonNull(name);
     }
 
     public int getDoseAmount() {

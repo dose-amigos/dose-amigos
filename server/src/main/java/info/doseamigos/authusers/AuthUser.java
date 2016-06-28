@@ -5,8 +5,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.math.BigInteger;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -17,7 +15,7 @@ public class AuthUser {
     private Long authUserId;
     private AmigoUser amigoUser;
     private String email;
-    private BigInteger googleRef;
+    private String googleRef;
 
     public Long getAuthUserId() {
         return authUserId;
@@ -43,11 +41,11 @@ public class AuthUser {
         this.email = requireNonNull(email);
     }
 
-    public BigInteger getGoogleRef() {
+    public String getGoogleRef() {
         return googleRef;
     }
 
-    public void setGoogleRef(BigInteger googleRef) {
+    public void setGoogleRef(String googleRef) {
         this.googleRef = googleRef;
     }
 

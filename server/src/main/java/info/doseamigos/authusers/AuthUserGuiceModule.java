@@ -3,7 +3,7 @@ package info.doseamigos.authusers;
 import com.google.inject.AbstractModule;
 
 /**
- * Created by jking31cs on 6/27/16.
+ * Guice Module for AuthUser objects.
  */
 public class AuthUserGuiceModule extends AbstractModule {
     @Override

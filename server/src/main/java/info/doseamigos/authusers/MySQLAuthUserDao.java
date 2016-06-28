@@ -3,7 +3,6 @@ package info.doseamigos.authusers;
 import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +13,7 @@ import java.sql.SQLException;
  */
 public class MySQLAuthUserDao implements AuthUserDao {
     @Override
-    public AuthUser getByGoogleRef(BigInteger googleRef) {
+    public AuthUser getByGoogleRef(String googleRef) {
         try (Connection conn = MySQLConnection.create()) {
             PreparedStatement statement = conn.prepareStatement(
                 "SELECT AUTHUSERS.AUTHUSERID, " +
@@ -29,7 +28,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
                     "ON AUTHUSERS.AMIGOUSERID =AMIGOUSERS.AMIGOUSERID " +
                     "WHERE AUTHUSERS.GOOGLEREFID = ?;"
             );
-            statement.setString(1, googleRef.toString());
+            statement.setString(1, googleRef);
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) {
                 return null;
@@ -124,7 +123,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
                         "VALUES (?,?,?);"
                 );
                 authUserStatement.setString(1, user.getEmail());
-                authUserStatement.setString(2, user.getGoogleRef().toString());
+                authUserStatement.setString(2, user.getGoogleRef());
                 authUserStatement.setLong(3, newAmigoId);
                 authUserStatement.executeUpdate();
                 PreparedStatement getAuthId = conn.prepareStatement(
@@ -164,7 +163,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
         authUser.setAmigoUser(amigoUser);
         authUser.setEmail(resultSet.getString("EMAIL"));
         authUser.setAuthUserId(resultSet.getLong("AUTHUSERID"));
-        authUser.setGoogleRef(new BigInteger(resultSet.getString("GOOGLEREFID")));
+        authUser.setGoogleRef(resultSet.getString("GOOGLEREFID"));
         if (resultSet.next()) {
             throw new RuntimeException("TOO MANY RESULTS FOUND");
         }

@@ -1,10 +1,5 @@
 package info.doseamigos.authusers;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.doseamigos.amigousers.AmigoUser;
 import org.apache.http.HttpResponse;
@@ -14,12 +9,17 @@ import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Mock an auth user based on google stuff.
  */
 public class MockAuthUserService implements AuthUserService {
 
     private static final Logger log = LoggerFactory.getLogger(MockAuthUserService.class);
+
     @Override
     public AuthUser getByToken(String accessToken) {
         log.info("Calling external Google URL");
@@ -35,7 +35,7 @@ public class MockAuthUserService implements AuthUserService {
         authUser.setAuthUserId(1L);
         authUser.setAmigoUser(amigoUser);
         authUser.setEmail((String) googleUser.get("email"));
-        authUser.setGoogleRef(new BigInteger((String) googleUser.get("id")));
+        authUser.setGoogleRef((String) googleUser.get("id"));
         return authUser;
     }
 

@@ -1,6 +1,5 @@
 package info.doseamigos.authusers;
 
-import java.math.BigInteger;
 import java.sql.SQLException;
 
 /**
@@ -13,7 +12,7 @@ public interface AuthUserDao {
      * @param googleRef The reference from Google servers after validating the token.
      * @return The AuthUser or null if none with googleRef exists.
      */
-    AuthUser getByGoogleRef(BigInteger googleRef);
+    AuthUser getByGoogleRef(String googleRef);
 
     /**
      * Gets an AuthUser by it's email or null if none exists.
