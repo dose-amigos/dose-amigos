@@ -12,15 +12,16 @@ import static java.util.Objects.requireNonNull;
  */
 public class AuthUser {
 
-    private long authUserId;
+    private Long authUserId;
     private AmigoUser amigoUser;
     private String email;
+    private String googleRef;
 
-    public long getAuthUserId() {
+    public Long getAuthUserId() {
         return authUserId;
     }
 
-    public void setAuthUserId(long authUserId) {
+    public void setAuthUserId(Long authUserId) {
         this.authUserId = requireNonNull(authUserId);
     }
 
@@ -38,6 +39,14 @@ public class AuthUser {
 
     public void setEmail(String email) {
         this.email = requireNonNull(email);
+    }
+
+    public String getGoogleRef() {
+        return googleRef;
+    }
+
+    public void setGoogleRef(String googleRef) {
+        this.googleRef = googleRef;
     }
 
     @Override

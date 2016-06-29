@@ -5,6 +5,7 @@ apply plugin: 'java'
 // In this section you declare where to find the dependencies of your project
 repositories {
     mavenCentral()
+
 }
 
 //Dependencies for the project
@@ -15,6 +16,11 @@ dependencies {
     compile 'mysql:mysql-connector-java:6.0.2'
     compile 'com.google.inject:guice:4.1.0'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'com.amazon.alexa:alexa-skills-kit:1.1.2'
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+    compile group: 'com.google.oauth-client', name: 'google-oauth-client', version: '1.22.0'
+    compile group: 'com.google.api-client', name: 'google-api-client', version: '1.22.0'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
 
     testCompile 'org.testng:testng:6.9.10'
     testCompile 'org.mockito:mockito-all:1.10.19'

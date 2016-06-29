@@ -1,0 +1,45 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Dose Amigos Tests",
+		"_postman_id": "0c1747d1-e263-0a5f-9be8-77a8c40f9766",
+		"description": "Test cases for Dose Amigos calls.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "https://x9twbox3pl.execute-api.us-east-1.amazonaws.com/dev/meds",
+			"request": {
+				"url": "https://x9twbox3pl.execute-api.us-east-1.amazonaws.com/dev/meds",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user\": {\n        \"amigoUserId\":1,\n        \"name\":\"Test User\"\n    },\n    \"name\": \"Allegra\",\n    \"doseAmount\": 1,\n    \"doseType\": \"Tablet\",\n    \"totalAmount\": 10\n}"
+				},
+				"description": "PUT call to meds that calls into Amazon Lambda"
+			},
+			"response": []
+		},
+		{
+			"name": "https://x9twbox3pl.execute-api.us-east-1.amazonaws.com/dev/dose-events",
+			"request": {
+				"url": "https://x9twbox3pl.execute-api.us-east-1.amazonaws.com/dev/dose-events",
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"description": "GET call to get dose events from lambda"
+			},
+			"response": []
+		}
+	]
+}

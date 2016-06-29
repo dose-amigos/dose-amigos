@@ -14,9 +14,9 @@ public class AuthUserTest {
     @Test
     public void testGetAuthUserId() throws Exception {
         AuthUser user = new AuthUser();
-        user.setAuthUserId(1);
+        user.setAuthUserId(1L);
 
-        assertEquals(user.getAuthUserId(), 1);
+        assertEquals(user.getAuthUserId(), (Long) 1L);
     }
 
     @Test
@@ -48,21 +48,21 @@ public class AuthUserTest {
     @Test
     public void testEquals() throws Exception {
         AuthUser user1 = new AuthUser();
-        user1.setAuthUserId(1);
+        user1.setAuthUserId(1L);
         user1.setAmigoUser(new AmigoUser(1, "test"));
         user1.setEmail("test@biz.quick");
 
         AuthUser user2 = new AuthUser();
-        user2.setAuthUserId(1);
+        user2.setAuthUserId(1L);
         user2.setAmigoUser(new AmigoUser(1, "test"));
         user2.setEmail("test@biz.quick");
 
         assertTrue(user1.equals(user2));
 
-        user2.setAuthUserId(2);
+        user2.setAuthUserId(2L);
         assertFalse(user1.equals(user2));
 
-        user2.setAuthUserId(1);
+        user2.setAuthUserId(1L);
         user2.setAmigoUser(new AmigoUser(2, "test2"));
         assertFalse(user1.equals(user2));
 
@@ -75,21 +75,21 @@ public class AuthUserTest {
     @Test
     public void testHashCode() throws Exception {
         AuthUser user1 = new AuthUser();
-        user1.setAuthUserId(1);
+        user1.setAuthUserId(1L);
         user1.setAmigoUser(new AmigoUser(1, "test"));
         user1.setEmail("test@biz.quick");
 
         AuthUser user2 = new AuthUser();
-        user2.setAuthUserId(1);
+        user2.setAuthUserId(1L);
         user2.setAmigoUser(new AmigoUser(1, "test"));
         user2.setEmail("test@biz.quick");
 
         assertEquals(user1.hashCode(), user2.hashCode());
 
-        user2.setAuthUserId(2);
+        user2.setAuthUserId(2L);
         assertNotEquals(user1.hashCode(), user2.hashCode());
 
-        user2.setAuthUserId(1);
+        user2.setAuthUserId(1L);
         user2.setAmigoUser(new AmigoUser(2, "test2"));
         assertNotEquals(user1.hashCode(), user2.hashCode());
 
