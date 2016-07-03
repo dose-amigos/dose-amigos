@@ -1,6 +1,7 @@
 package info.doseamigos.meds;
 
 import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.authusers.AuthUser;
 
 import java.util.List;
 
@@ -15,14 +16,14 @@ public interface MedService {
      * @param name The Name of the med to look up.
      * @return A new Med object for the user with the name.
      */
-    Med addByName(String name);
+    Med addByName(AuthUser authUser, String name);
 
     /**
      * Gets a list of all meds for a given user, ordered by nextScheduled Time.
      * @param user The amigo user to get meds for.
      * @return The List of Medications to take.
      */
-    List<Med> medsForUser(AmigoUser user);
+    List<Med> medsForUser(AuthUser authUser, AmigoUser user);
 
     /**
      * Creates or updates a med based on the information passed in.  It creates if medId is null, updates
@@ -30,5 +31,5 @@ public interface MedService {
      * @param medInfo The med info object we're saving.
      * @return The new MedInfo object.
      */
-    Med updateMed(Med medInfo);
+    Med saveMed(AuthUser authUser, Med medInfo);
 }

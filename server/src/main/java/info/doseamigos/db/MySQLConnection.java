@@ -15,8 +15,8 @@ public class MySQLConnection {
      */
     public static Connection create() throws SQLException {
         return DriverManager.getConnection(
-            "jdbc:mysql://doseamigos2.cdjwskv4xmf8.us-east-1.rds.amazonaws.com:3306/doseamigos2?&useLegacyDatetimeCode=false&serverTimezone=UTC",
-            "amigoadmin",
+            "jdbc:mysql://104.196.57.95:3306/doseamigos?&useLegacyDatetimeCode=false&serverTimezone=UTC",
+            "amigoDBUser",
             "Newuser_22"
         );
     }

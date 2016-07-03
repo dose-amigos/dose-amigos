@@ -33,6 +33,9 @@ public class DefaultAuthUserService implements AuthUserService {
     public AuthUser getByToken(String accessToken) {
         Map<String, Object> infoFromGoogle;
         try {
+            if (!validToken(accessToken)) {
+                throw new RuntimeException("Access Token is not valid.");
+            }
             infoFromGoogle = getUserInfo(accessToken);
             if (infoFromGoogle.containsKey("error")) {
                 throw new IllegalArgumentException("There were errors retrieving user info from Google.");
@@ -59,6 +62,12 @@ public class DefaultAuthUserService implements AuthUserService {
         return toRet;
     }
 
+    /**
+     * Grabs User Information from the google apis.
+     * @param accessToken The access token to get information for.
+     * @return A map of String to Object with user information we would want.
+     * @throws IOException IF there was a http error.
+     */
     Map<String, Object> getUserInfo(String accessToken) throws IOException {
 
         HttpGet httpGet = new HttpGet("https://www.googleapis.com/userinfo/v2/me?access_token=" + accessToken);
@@ -69,6 +78,32 @@ public class DefaultAuthUserService implements AuthUserService {
         return objectMapper.readValue(response.getEntity().getContent(), objectMapper.getTypeFactory()
             .constructMapType(HashMap.class, String.class, Object.class));
 
+    }
+
+    /**
+     * Calls google's validateToken REST endpoint to validate the token.
+     * @param accessToken The token to validate.
+     * @return true if the clientId matches our clientId and expires_in is above 0. false otherwise.
+     * @throws IOException
+     */
+    boolean validToken(String accessToken) throws IOException {
+
+        HttpGet httpGet = new HttpGet("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken);
+        HttpClient client = HttpClients.createDefault();
+        HttpResponse response = client.execute(httpGet);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> validationResults =
+            objectMapper.readValue(response.getEntity().getContent(), objectMapper.getTypeFactory()
+                .constructMapType(HashMap.class, String.class, String.class));
+
+        //This is the clientId for our app being validated.
+        boolean correctAudience = validationResults.get("aud").equals(
+            "732216027898-68qmvd4i3n8uqrg4kp1kcvc20qpjqn8p.apps.googleusercontent.com");
+
+        boolean notExpired = Integer.parseInt(validationResults.get("expires_in")) > 0;
+
+        return correctAudience && notExpired;
     }
 
     @Override

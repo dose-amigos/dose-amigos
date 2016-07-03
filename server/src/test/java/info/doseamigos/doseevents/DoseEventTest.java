@@ -25,7 +25,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -48,7 +48,7 @@ public class DoseEventTest {
     @Test
     public void testGetMeds() throws Exception {
         assertEquals(doseEvent.getMeds(), Arrays.asList(new Med(
-            1,
+            1L,
             new AmigoUser(1, "test"),
             1,
             "Test Drug"
@@ -71,7 +71,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -84,7 +84,7 @@ public class DoseEventTest {
             2,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -97,7 +97,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(2, "test2"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -110,7 +110,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                2,
+                2L,
                 new AmigoUser(1, "test"),
                 2,
                 "Test Drug 2"
@@ -123,7 +123,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -136,7 +136,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -152,7 +152,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -165,7 +165,7 @@ public class DoseEventTest {
             2,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -178,7 +178,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(2, "test2"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -191,7 +191,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                2,
+                2L,
                 new AmigoUser(1, "test"),
                 2,
                 "Test Drug 2"
@@ -204,7 +204,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
@@ -217,7 +217,7 @@ public class DoseEventTest {
             1,
             new AmigoUser(1, "test"),
             Arrays.asList(new Med(
-                1,
+                1L,
                 new AmigoUser(1, "test"),
                 1,
                 "Test Drug"
