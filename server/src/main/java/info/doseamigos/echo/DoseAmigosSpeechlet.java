@@ -82,7 +82,7 @@ public class DoseAmigosSpeechlet implements Speechlet {
                 return SpeechletResponse.newTellResponse(outputSpeech, card);
             case "ListMeds":
                 log.info("Getting list of medications for user");
-                List<Med> meds = medService.medsForUser(sessionUser.getAmigoUser());
+                List<Med> meds = medService.medsForUser(sessionUser, sessionUser.getAmigoUser());
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("Here's the following medications listed for you, " + sessionUser.getAmigoUser().getName());
@@ -104,7 +104,7 @@ public class DoseAmigosSpeechlet implements Speechlet {
                 if (medName == null || medName.trim().isEmpty()) {
                     throw new RuntimeException("Med Name is null or empty");
                 }
-                Med newMed = medService.addByName(medName);
+                Med newMed = medService.addByName(sessionUser, medName);
                 log.info("Added new med: " + newMed);
                 outputSpeech.setText(String.format("You've added %s to your list of medications.", newMed.getName()));
 

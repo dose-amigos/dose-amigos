@@ -8,7 +8,7 @@ import com.google.inject.AbstractModule;
 public class AuthUserGuiceModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(AuthUserService.class).to(MockAuthUserService.class);
+        bind(AuthUserService.class).to(DefaultAuthUserService.class);
         bind(AuthUserDao.class).to(MySQLAuthUserDao.class);
     }
 }

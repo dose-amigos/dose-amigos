@@ -104,6 +104,8 @@ public class MySQLAuthUserDao implements AuthUserDao {
                 );
                 authUserStatement.setString(1, user.getEmail());
                 authUserStatement.setLong(2, user.getAuthUserId());
+                authUserStatement.executeUpdate();
+                newAuthId = user.getAuthUserId();
             } else {
 
                 PreparedStatement amigoStatement = conn.prepareStatement(
@@ -134,15 +136,14 @@ public class MySQLAuthUserDao implements AuthUserDao {
                 newAuthId = authResultSet.getLong("authUserId");
 
                 PreparedStatement relStatement = conn.prepareStatement(
-                    "INSERT INTO AUTH_AMIGO_REL(AMIGOUSERID, AUTHUSERID, acknowledged) " +
+                    "INSERT INTO AMIGO_AUTH_REL(AMIGOUSERID, AUTHUSERID, acknowledged) " +
                         "VALUES (?,?,'Y')"
                 );
                 relStatement.setLong(1, newAmigoId);
                 relStatement.setLong(2, newAuthId);
                 relStatement.executeUpdate();
-
-                conn.commit();
             }
+            conn.commit();
         } catch (SQLException e) {
             throw new RuntimeException("A DB exception occurred:", e);
         } finally {

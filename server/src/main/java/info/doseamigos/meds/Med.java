@@ -15,7 +15,7 @@ import static java.util.Objects.requireNonNull;
  * be found, rxcui can be null.
  */
 public class Med {
-    private long medId;
+    private Long medId;
     private AmigoUser user;
     private Long rxcui;
     private String name;
@@ -32,7 +32,7 @@ public class Med {
     }
 
     public Med(
-        long medId,
+        Long medId,
         AmigoUser amigoUser,
         long rxcui,
         String name
@@ -43,12 +43,12 @@ public class Med {
         this.setName(name);
     }
 
-    public long getMedId() {
+    public Long getMedId() {
         return medId;
     }
 
-    public void setMedId(long medId) {
-        this.medId = requireNonNull(medId);
+    public void setMedId(Long medId) {
+        this.medId = medId;
     }
 
     public AmigoUser getUser() {

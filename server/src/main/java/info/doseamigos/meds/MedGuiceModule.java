@@ -8,6 +8,7 @@ import com.google.inject.AbstractModule;
 public class MedGuiceModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(MedService.class).to(MockMedService.class);
+        bind(MedService.class).to(DefaultMedService.class);
+        bind(MedDao.class).to(MySQLMedDao.class);
     }
 }

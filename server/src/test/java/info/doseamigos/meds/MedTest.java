@@ -14,9 +14,9 @@ public class MedTest {
     @Test
     public void testGetMedId() throws Exception {
         Med med = new Med();
-        med.setMedId(1);
+        med.setMedId(1L);
 
-        assertEquals(med.getMedId(), 1);
+        assertEquals(med.getMedId(), Long.valueOf(1));
     }
 
     @Test
@@ -64,14 +64,14 @@ public class MedTest {
     @Test
     public void testEquals() throws Exception {
         Med med1 = new Med(
-            1,
+            1L,
             new AmigoUser(1, "test"),
             1,
             "Test Drug"
         );
 
         Med med2 = new Med(
-            1,
+            1L,
             new AmigoUser(1, "test"),
             1,
             "Test Drug"
@@ -79,10 +79,10 @@ public class MedTest {
 
         assertTrue(med1.equals(med2));
 
-        med2.setMedId(2);
+        med2.setMedId(2L);
         assertFalse(med1.equals(med2));
 
-        med2.setMedId(1);
+        med2.setMedId(1L);
         med2.setUser(new AmigoUser(2, "test2"));
         assertFalse(med1.equals(med2));
 
@@ -99,14 +99,14 @@ public class MedTest {
     @Test
     public void testHashCode() throws Exception {
         Med med1 = new Med(
-            1,
+            1L,
             new AmigoUser(1, "test"),
             1,
             "Test Drug"
         );
 
         Med med2 = new Med(
-            1,
+            1L,
             new AmigoUser(1, "test"),
             1,
             "Test Drug"
@@ -114,10 +114,10 @@ public class MedTest {
 
         assertEquals(med1.hashCode(), med2.hashCode());
 
-        med2.setMedId(2);
+        med2.setMedId(2L);
         assertNotEquals(med1.hashCode(), med2.hashCode());
 
-        med2.setMedId(1);
+        med2.setMedId(1L);
         med2.setUser(new AmigoUser(2, "test2"));
         assertNotEquals(med1.hashCode(), med2.hashCode());
 

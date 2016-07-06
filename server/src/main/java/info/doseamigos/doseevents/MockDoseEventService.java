@@ -25,7 +25,7 @@ public class MockDoseEventService implements DoseEventService {
                 ),
                 Arrays.asList(
                     new Med(
-                        1,
+                        1L,
                         new AmigoUser(
                             1L,
                             "John Doe"
