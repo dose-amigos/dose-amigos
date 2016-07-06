@@ -4,14 +4,11 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import info.doseamigos.ClientRequestObject;
 import info.doseamigos.CommonModule;
 import info.doseamigos.amigousers.AmigoUser;
-import info.doseamigos.authusers.AccessTokenDeserializer;
-import info.doseamigos.authusers.AuthUser;
 
 import java.io.IOException;
 import java.io.InputStream;
