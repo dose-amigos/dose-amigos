@@ -16,52 +16,50 @@ import static java.util.Objects.requireNonNull;
  */
 public class DoseEvent {
 
-    private final long eventId;
+    private Long doseEventId;
+    private Med med;
+    private Date scheduledDateTime;
+    private Date actionDateTime;
+    private EventType action;
 
-    private final AmigoUser amigoUser;
-    private final List<Med> meds;
-    private final Date timeTaken;
-    private final EventType eventType;
-    /**
-     * Default Constructor for creating a DoseEvent.
-     * @param eventId The id for the event in the DB.
-     * @param amigoUser The user who caused the event.
-     * @param meds The list of meds involved with the event.
-     * @param timeTaken The time at which the event took place.
-     * @param eventType The type of event we're sending.
-     */
-    public DoseEvent(
-        long eventId,
-        AmigoUser amigoUser,
-        List<Med> meds,
-        Date timeTaken,
-        EventType eventType
-    ) {
-        this.eventId = requireNonNull(eventId);
-        this.amigoUser = requireNonNull(amigoUser);
-        this.meds = requireNonNull(meds);
-        this.timeTaken = requireNonNull(timeTaken);
-        this.eventType = requireNonNull(eventType);
+    public Long getDoseEventId() {
+        return doseEventId;
     }
 
-    public long getEventId() {
-        return eventId;
+    public void setDoseEventId(Long doseEventId) {
+        this.doseEventId = doseEventId;
     }
 
-    public AmigoUser getAmigoUser() {
-        return amigoUser;
+    public Med getMed() {
+        return med;
     }
 
-    public List<Med> getMeds() {
-        return meds;
+    public void setMed(Med med) {
+        this.med = med;
     }
 
-    public Date getTimeTaken() {
-        return timeTaken;
+    public Date getScheduledDateTime() {
+        return scheduledDateTime;
     }
 
-    public EventType getEventType() {
-        return eventType;
+    public void setScheduledDateTime(Date scheduledDateTime) {
+        this.scheduledDateTime = scheduledDateTime;
+    }
+
+    public Date getActionDateTime() {
+        return actionDateTime;
+    }
+
+    public void setActionDateTime(Date actionDateTime) {
+        this.actionDateTime = actionDateTime;
+    }
+
+    public EventType getAction() {
+        return action;
+    }
+
+    public void setAction(EventType action) {
+        this.action = action;
     }
 
     @Override

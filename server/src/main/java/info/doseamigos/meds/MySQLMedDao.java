@@ -105,6 +105,8 @@ public class MySQLMedDao implements MedDao {
                     "      MEDS.nextScheduledDose," +
                     "      MEDS.active," +
                     "      AMIGOUSERS.amigouserid," +
+                    "      AMIGOUSERS.lastTimeDoseTaken," +
+                    "      AMIGOUSERS.nextTimeDoseScheduled," +
                     "      AMIGOUSERS.name AS amigoName" +
                     " FROM MEDS" +
                     " JOIN AMIGOUSERS" +

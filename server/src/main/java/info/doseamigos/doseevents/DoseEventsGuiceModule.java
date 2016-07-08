@@ -8,6 +8,7 @@ import com.google.inject.AbstractModule;
 public class DoseEventsGuiceModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(DoseEventService.class).to(MockDoseEventService.class);
+        bind(DoseEventService.class).to(DefaultDoseEventService.class);
+        bind(DoseEventDao.class).to(MySQLDoseEventDao.class);
     }
 }
