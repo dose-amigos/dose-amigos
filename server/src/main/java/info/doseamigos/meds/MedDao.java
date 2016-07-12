@@ -1,7 +1,5 @@
 package info.doseamigos.meds;
 
-import info.doseamigos.amigousers.AmigoUser;
-
 import java.sql.SQLException;
 import java.util.List;
 

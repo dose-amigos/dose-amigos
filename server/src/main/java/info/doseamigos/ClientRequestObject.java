@@ -8,10 +8,7 @@ import info.doseamigos.authusers.AuthUser;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Due to how the API Gateway works with Amazon Lambdas, to pass in header and query param information from the client
