@@ -21,6 +21,11 @@ public class MockAuthUserService implements AuthUserService {
     private static final Logger log = LoggerFactory.getLogger(MockAuthUserService.class);
 
     @Override
+    public String getAccessToken(String idToken) throws IOException {
+        return null;
+    }
+
+    @Override
     public AuthUser getByToken(String accessToken) {
         log.info("Calling external Google URL");
         Map<String, Object> googleUser;

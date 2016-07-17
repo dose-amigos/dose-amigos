@@ -1,9 +1,13 @@
 package info.doseamigos.authusers;
 
+import java.io.IOException;
+
 /**
  * Service for handling any logic related to AuthUsers.
  */
 public interface AuthUserService {
+
+    String getAccessToken(String idToken) throws IOException;
 
     /**
      * Verifies that a accessToken is valid and grabs the AuthUser associated with

@@ -3,7 +3,7 @@ package info.doseamigos;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import info.doseamigos.authusers.AccessTokenDeserializer;
+import info.doseamigos.authusers.IdTokenDeserializer;
 import info.doseamigos.authusers.AuthUser;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class ClientRequestObject<T> {
 
-    @JsonDeserialize(using = AccessTokenDeserializer.class)
+    @JsonDeserialize(using = IdTokenDeserializer.class)
     private final AuthUser sessionUser;
 
     private final Map<String, String> queryParams;
