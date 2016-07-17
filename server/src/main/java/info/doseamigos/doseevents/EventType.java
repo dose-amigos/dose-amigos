@@ -18,5 +18,17 @@ public enum EventType {
     /**
      * Represents that the user missed their dose at the specific scheduled time.
      */
-    MISSED
+    MISSED;
+
+    public static EventType getByString(String eventName) {
+        if (eventName == null) {
+            return null;
+        }
+        for (EventType type : values()) {
+            if (type.name().equals(eventName.toUpperCase())) {
+                return type;
+            }
+        }
+        return null;
+    }
 }

@@ -1,6 +1,7 @@
 package info.doseamigos.doseseries;
 
 import info.doseamigos.authusers.AuthUser;
+import info.doseamigos.meds.Med;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -37,5 +38,10 @@ public class DefaultDoseSeriesService implements DoseSeriesService {
     @Override
     public DoseSeries getById(Long id) {
         return doseSeriesDao.getById(id);
+    }
+
+    @Override
+    public DoseSeries getForMed(Med med) {
+        return doseSeriesDao.getForMed(med);
     }
 }

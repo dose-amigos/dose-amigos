@@ -45,4 +45,9 @@ public class DefaultMedService implements MedService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public List<Med> medsForUserSystemCommand(AmigoUser user) {
+        return medDao.getMedsForAmigo((user.getAmigoUserId()));
+    }
 }

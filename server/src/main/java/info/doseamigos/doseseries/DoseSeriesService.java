@@ -1,6 +1,7 @@
 package info.doseamigos.doseseries;
 
 import info.doseamigos.authusers.AuthUser;
+import info.doseamigos.meds.Med;
 
 /**
  * Business Service for handling DoseSeries logic..
@@ -22,5 +23,10 @@ public interface DoseSeriesService {
      */
     DoseSeries getById(Long id);
 
-
+    /**
+     * Gets a DoseSeries for a given med.
+     * @param med The med to look up for.
+     * @return The DoseSeries
+     */
+    DoseSeries getForMed(Med med);
 }

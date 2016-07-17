@@ -58,6 +58,9 @@ public class MySQLAuthUserDao implements AuthUserDao {
             );
             statement.setString(1, email);
             ResultSet resultSet = statement.executeQuery();
+            if (!resultSet.next()) {
+                return null;
+            }
             return populateAuthUserFromRS(resultSet);
 
         } catch (SQLException e) {
@@ -83,6 +86,9 @@ public class MySQLAuthUserDao implements AuthUserDao {
             );
             statement.setLong(1, authUserId);
             ResultSet resultSet = statement.executeQuery();
+            if (!resultSet.next()) {
+                return null;
+            }
             return populateAuthUserFromRS(resultSet);
 
         } catch (SQLException e) {
@@ -154,9 +160,6 @@ public class MySQLAuthUserDao implements AuthUserDao {
     }
 
     private AuthUser populateAuthUserFromRS(ResultSet resultSet) throws SQLException {
-        if (!resultSet.next()) {
-            return null;
-        }
         AmigoUser amigoUser = new AmigoUser();
         amigoUser.setName(resultSet.getString("NAME"));
         amigoUser.setAmigoUserId(resultSet.getLong("AMIGOUSERID"));

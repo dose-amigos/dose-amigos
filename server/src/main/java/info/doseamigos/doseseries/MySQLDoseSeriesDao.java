@@ -99,6 +99,8 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     "   MEDS.nextScheduledDose," +
                     "   MEDS.active," +
                     "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.lastTimeDoseTaken," +
+                    "   AMIGOUSERS.nextTimeDoseScheduled," +
                     "   AMIGOUSERS.name AS amigoName" +
                     " FROM DOSESERIESITEM " +
                     " JOIN DOSESERIES " +
@@ -125,6 +127,69 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     series.getTimes().add(seriesTime);
                 }
             }
+            series.setMed(med);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return series;
+    }
+
+    @Override
+    public DoseSeries getForMed(Med lookupMed) {
+        DoseSeries series = new DoseSeries();
+        series.setDays(new ArrayList<Integer>());
+        series.setTimes(new ArrayList<Date>());
+        try (Connection conn = MySQLConnection.create()) {
+            PreparedStatement statement = conn.prepareStatement(
+                "SELECT DOSESERIESITEM.seriesId, " +
+                    "   DOSESERIESITEM.seriesDay, " +
+                    "   DOSESERIESITEM.seriesTime, " +
+                    "   MEDS.medId," +
+                    "   MEDS.rxcui," +
+                    "   MEDS.name AS medName," +
+                    "   MEDS.doseamount," +
+                    "   MEDS.doseUnit," +
+                    "   MEDS.totalAmount," +
+                    "   MEDS.doseInstructions," +
+                    "   MEDS.firstTaken," +
+                    "   MEDS.lastDoseTaken," +
+                    "   MEDS.nextScheduledDose," +
+                    "   MEDS.active," +
+                    "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.lastTimeDoseTaken," +
+                    "   AMIGOUSERS.nextTimeDoseScheduled," +
+                    "   AMIGOUSERS.name AS amigoName" +
+                    " FROM DOSESERIESITEM " +
+                    " JOIN DOSESERIES " +
+                    "   ON DOSESERIESITEM.seriesId = DOSESERIES.seriesId" +
+                    " JOIN MEDS " +
+                    "   ON DOSESERIES.medId = MEDS.medId " +
+                    " JOIN AMIGOUSERS " +
+                    "   ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
+                    "WHERE DOSESERIES.medId = ?"
+            );
+            statement.setLong(1, lookupMed.getMedId());
+            ResultSet rs = statement.executeQuery();
+            Med med = null;
+            Long seriesId = null;
+            while (rs.next()) {
+                if (seriesId == null) {
+                    seriesId = rs.getLong("seriesId");
+                }
+                if (med == null) {
+                    med = new MedRowMapper().mapRow(rs);
+                }
+                Integer seriesDay = rs.getInt("seriesDay");
+                Date seriesTime = new Date(rs.getTimestamp("seriesTime").getTime());
+                if (!series.getDays().contains(seriesDay)) {
+                    series.getDays().add(seriesDay);
+                }
+                if (!series.getTimes().contains(seriesTime)) {
+                    series.getTimes().add(seriesTime);
+                }
+            }
+            series.setSeriesId(seriesId);
             series.setMed(med);
         } catch (SQLException e) {
             throw new RuntimeException(e);

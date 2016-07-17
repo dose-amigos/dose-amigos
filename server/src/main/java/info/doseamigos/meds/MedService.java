@@ -32,4 +32,11 @@ public interface MedService {
      * @return The new MedInfo object.
      */
     Med saveMed(AuthUser authUser, Med medInfo);
+
+    /**
+     * Copy of medsForUser to be used by the system, no validation required.
+     * @param user The user to get meds for
+     * @return the Meds for the user.
+     */
+    List<Med> medsForUserSystemCommand(AmigoUser user);
 }
