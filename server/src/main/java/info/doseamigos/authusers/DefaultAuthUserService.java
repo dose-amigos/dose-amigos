@@ -1,6 +1,7 @@
 package info.doseamigos.authusers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import info.doseamigos.amigousers.AmigoUser;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,7 +12,9 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -26,6 +29,24 @@ public class DefaultAuthUserService implements AuthUserService {
     @Inject
     public DefaultAuthUserService(@Nonnull  AuthUserDao authUserDao) {
         this.authUserDao = requireNonNull(authUserDao);
+    }
+
+    @Override
+    public String getAccessToken(String idToken) throws IOException {
+        HttpGet httpGet = new HttpGet("https://mckoon.auth0.com/tokeninfo?id_token=" + idToken);
+        HttpClient client = HttpClients.createDefault();
+        HttpResponse response = client.execute(httpGet);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> idTokenResults = objectMapper.readValue(response.getEntity().getContent(), objectMapper.getTypeFactory()
+            .constructMapType(HashMap.class, String.class, Object.class));
+        String toRet = null;
+        for (Map<String, Object> identity : (List<Map<String, Object>>) idTokenResults.get("identities")) {
+            if (identity.get("provider").equals("google-oauth2")) {
+                toRet = (String) identity.get("access_token");
+            }
+        }
+        return toRet;
     }
 
 

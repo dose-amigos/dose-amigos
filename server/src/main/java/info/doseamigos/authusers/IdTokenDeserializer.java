@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -15,14 +17,15 @@ import java.util.regex.Pattern;
  * Jackson Deserializer for AccessToken to turn into AuthUsers.  If we pass just the access token in, then we call the
  * google endpoints to
  */
-public class AccessTokenDeserializer extends JsonDeserializer<AuthUser> {
+public class IdTokenDeserializer extends JsonDeserializer<AuthUser> {
 
     private final AuthUserService authUserService;
+    private static final Logger logger = LoggerFactory.getLogger(IdTokenDeserializer.class);
 
     /**
      * Not using Guice to construct this to make life easier since it relies on Annotation stuff from Jackson.
      */
-    public AccessTokenDeserializer() {
+    public IdTokenDeserializer() {
         authUserService = new DefaultAuthUserService(new MySQLAuthUserDao());
     }
 
@@ -39,12 +42,16 @@ public class AccessTokenDeserializer extends JsonDeserializer<AuthUser> {
     public AuthUser deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode node  = p.getCodec().readTree(p);
         if (node.getNodeType() == JsonNodeType.STRING) {
-            String accessToken = node.textValue();
+            String idToken = node.textValue();
             String accessTokenRegex = "^Bearer (.*)$";
             Pattern pattern = Pattern.compile(accessTokenRegex);
-            Matcher matcher = pattern.matcher(accessToken);
+            Matcher matcher = pattern.matcher(idToken);
             if (matcher.matches()) {
-                accessToken = matcher.group(1);
+                idToken = matcher.group(1);
+            }
+            String accessToken = authUserService.getAccessToken(idToken);
+            if (accessToken == null) {
+                logger.error("Somehow got a blank access token from Auth0: " + idToken);
             }
             return authUserService.getByToken(accessToken);
         }

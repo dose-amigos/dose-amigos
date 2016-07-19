@@ -67,6 +67,45 @@ public class MedWebService {
     }
 
     /**
+     * GET call on meds, gets list of meds for specific auth user.
+     * @param inputStream
+     * @param outputStream
+     * @param context
+     * @throws IOException
+     */
+    public void getMedsForSessionUser(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+
+        ClientRequestObject<Object> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                Object.class));
+
+        logger.log("Calling create/update Med");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        List<Med> meds = medService.medsForUser(
+            clientRequestObject.getSessionUser(),
+            clientRequestObject.getSessionUser().getAmigoUser()
+        );
+
+        objectMapper.writeValue(outputStream, meds);
+    }
+
+    /**
      * GET call that gets meds for a given user.
      * @param inputStream
      * @param outputStream
