@@ -125,19 +125,19 @@ public class MedWebService {
         logger.log("Stream Contents: " + streamContents);
 
 
-        ClientRequestObject<Integer> clientRequestObject = objectMapper.readValue(
+        ClientRequestObject<Long> clientRequestObject = objectMapper.readValue(
             streamContents,
             objectMapper.getTypeFactory().constructParametrizedType(
                 ClientRequestObject.class,
                 ClientRequestObject.class,
-                Integer.class));
+                Long.class));
 
         logger.log("Calling create/update Med");
         logger.log("Input: " + clientRequestObject.getQueryParams());
         logger.log("User: " + clientRequestObject.getSessionUser());
 
         AmigoUser userToGetMedsFor = new AmigoUser();
-        userToGetMedsFor.setAmigoUserId(clientRequestObject.getBody());
+        userToGetMedsFor.setId(clientRequestObject.getBody());
         List<Med> meds = medService.medsForUser(clientRequestObject.getSessionUser(), userToGetMedsFor);
 
         objectMapper.writeValue(outputStream, meds);

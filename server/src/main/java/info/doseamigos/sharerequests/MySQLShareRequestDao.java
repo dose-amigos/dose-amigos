@@ -26,7 +26,7 @@ public class MySQLShareRequestDao implements ShareRequestDao {
                     "INSERT INTO SHAREREQUESTS(amigouserid, authUserId) " +
                     "VALUES (?, ?);"
             );
-            addShareRequestStatement.setLong(1, request.getSharedAmigo().getAmigoUserId());
+            addShareRequestStatement.setLong(1, request.getSharedAmigo().getId());
             addShareRequestStatement.setLong(2, getAuthUserId(conn, request.getTargetUserEmail()));
 
             addShareRequestStatement.executeUpdate();
@@ -68,6 +68,7 @@ public class MySQLShareRequestDao implements ShareRequestDao {
             PreparedStatement getRequestsStatement = conn.prepareStatement(
                     "SELECT AMIGOUSERS.amigouserid, " +
                             "   AMIGOUSERS.name AS amigoName, " +
+                            "   AMIGOUSERS.picUrl, " +
                             "   AMIGOUSERS.lastTimeDoseTaken, " +
                             "   AMIGOUSERS.nextTimeDoseScheduled, " +
                             "   AUTHUSERS.email AS targetUserEmail, +" +

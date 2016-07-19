@@ -35,7 +35,7 @@ public class MockAuthUserService implements AuthUserService {
             throw new RuntimeException(e);
         }
         log.info("Retrieved info from google.");
-        AmigoUser amigoUser = new AmigoUser(1, (String) googleUser.get("name"));
+        AmigoUser amigoUser = new AmigoUser(1L, (String) googleUser.get("name"));
         AuthUser authUser = new AuthUser();
         authUser.setAuthUserId(1L);
         authUser.setAmigoUser(amigoUser);

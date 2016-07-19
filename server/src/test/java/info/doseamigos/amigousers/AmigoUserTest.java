@@ -13,9 +13,9 @@ public class AmigoUserTest {
     @Test
     public void testAmigoUserId() throws Exception {
         AmigoUser user = new AmigoUser();
-        user.setAmigoUserId(1);
+        user.setId(1L);
 
-        assertEquals(user.getAmigoUserId(), 1);
+        assertEquals(user.getId(), (Long) 1L);
     }
 
     @Test
@@ -35,11 +35,11 @@ public class AmigoUserTest {
     @Test
     public void testEquals() throws Exception {
         AmigoUser user1 = new AmigoUser();
-        user1.setAmigoUserId(1);
+        user1.setId(1L);
         user1.setName("test1");
 
         AmigoUser user2 = new AmigoUser();
-        user2.setAmigoUserId(1);
+        user2.setId(1L);
         user2.setName("test1");
 
         assertTrue(user1.equals(user2));
@@ -48,7 +48,7 @@ public class AmigoUserTest {
         assertFalse(user1.equals(user2));
 
         user2.setName("test1");
-        user2.setAmigoUserId(2);
+        user2.setId(2L);
         assertFalse(user1.equals(user2));
 
         user2.setName("test2");
@@ -59,11 +59,11 @@ public class AmigoUserTest {
     @Test
     public void testHashCode() throws Exception {
         AmigoUser user1 = new AmigoUser();
-        user1.setAmigoUserId(1);
+        user1.setId(1L);
         user1.setName("test1");
 
         AmigoUser user2 = new AmigoUser();
-        user2.setAmigoUserId(1);
+        user2.setId(1L);
         user2.setName("test1");
 
         assertEquals(user1.hashCode(), user2.hashCode());
@@ -72,7 +72,7 @@ public class AmigoUserTest {
         assertNotEquals(user1.hashCode(), user2.hashCode());
 
         user2.setName("test1");
-        user2.setAmigoUserId(2);
+        user2.setId(2L);
         assertNotEquals(user1.hashCode(), user2.hashCode());
 
         user2.setName("test2");

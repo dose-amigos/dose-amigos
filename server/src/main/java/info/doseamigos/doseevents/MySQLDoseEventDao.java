@@ -1,14 +1,18 @@
 package info.doseamigos.doseevents;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import org.joda.time.DateTime;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * MySQL implementation of {@link DoseEventDao}.
@@ -73,6 +77,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "   MEDS.nextScheduledDose," +
                     "   MEDS.active," +
                     "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
                     "   AMIGOUSERS.lastTimeDoseTaken," +
                     "   AMIGOUSERS.nextTimeDoseScheduled," +
                     "   AMIGOUSERS.name AS amigoName " +
@@ -122,6 +127,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "   MEDS.nextScheduledDose," +
                     "   MEDS.active," +
                     "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
                     "   AMIGOUSERS.lastTimeDoseTaken," +
                     "   AMIGOUSERS.nextTimeDoseScheduled," +
                     "   AMIGOUSERS.name AS amigoName " +
@@ -137,7 +143,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
             );
             DateTime tomorrow = DateTime.now().plusDays(1);
             statement.setTimestamp(1, new Timestamp(tomorrow.toDate().getTime()));
-            statement.setLong(2, amigoUser.getAmigoUserId());
+            statement.setLong(2, amigoUser.getId());
 
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
