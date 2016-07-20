@@ -1,11 +1,12 @@
 package info.doseamigos.doseevents;
 
-import info.doseamigos.amigousers.AmigoUser;
-import info.doseamigos.authusers.AuthUser;
-import info.doseamigos.meds.Med;
-
 import java.util.Date;
 import java.util.List;
+
+import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.authusers.AuthUser;
+import info.doseamigos.doseseries.DoseSeries;
+import info.doseamigos.meds.Med;
 
 /**
  * Service that gets events for a specific user.
@@ -36,6 +37,19 @@ public interface DoseEventService {
     void generateDoseEventsForAllUsers();
 
     /**
+     * Generates a bunch of new events for a Dose Series.  Meant to be called when adding a new Dose Series for the
+     * first time.
+     * @param series Series to generate events for
+     * @return The newly generated events.
+     */
+    List<DoseEvent> generateWeekEventsForSeries(DoseSeries series);
+
+    /**
+     * Cron job method that should mark all events that took place over an hour ago as Missed
+     */
+    void markMissedEvents();
+
+    /**
      * Gets a list of events for the user that end at the end of the day.  This will include all events before today
      * with no action associated with it.
      * @param authUser The AuthUser making the request, for validation purposes.
@@ -51,4 +65,15 @@ public interface DoseEventService {
      * @return The updated list of DoseEvents.
      */
     List<DoseEvent> updateDoseEvents(AuthUser authUser, List<DoseEvent> doseEvents);
+
+    /**
+     * Get DoseEvents to display for the phone.
+     * @param authUser The auth user making the call
+     * @param startDate The start date
+     * @param dir Whether we want the first dose after date, or last dose before date.
+     * @return The list of doses at the same time.
+     */
+    List<DoseEvent> getDosesForPhone(AuthUser authUser, Date startDate, String dir);
+
+
 }

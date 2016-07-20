@@ -163,16 +163,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
             for (DoseEvent event : doseEvents) {
-                PreparedStatement updateStatement = conn.prepareStatement(
-                    "UPDATE DOSEEVENTS " +
-                        "  SET action=?, actionDateTime=? " +
-                        "WHERE doseEventId = ?"
-                );
-                updateStatement.setString(1, event.getAction().name());
-                updateStatement.setTimestamp(2, new Timestamp(event.getActionDateTime().getTime()));
-                updateStatement.setLong(3, event.getDoseEventId());
-
-                updateStatement.executeUpdate();
+                updateEventCall(conn, event);
             }
             conn.commit();
 
@@ -181,6 +172,127 @@ public class MySQLDoseEventDao implements DoseEventDao {
                 conn.rollback();
                 conn.close();
             }
+        }
+    }
+
+    private void updateEventCall(Connection conn, DoseEvent event) throws SQLException {
+        PreparedStatement updateStatement = conn.prepareStatement(
+            "UPDATE DOSEEVENTS " +
+                "  SET action=?, actionDateTime=? " +
+                "WHERE doseEventId = ?"
+        );
+        updateStatement.setString(1, event.getAction().name());
+        updateStatement.setTimestamp(2, new Timestamp(event.getActionDateTime().getTime()));
+        updateStatement.setLong(3, event.getDoseEventId());
+
+        updateStatement.executeUpdate();
+    }
+
+    @Override
+    public List<DoseEvent> getEventsForUser(AmigoUser amigoUser, Date startDate, String dir) {
+        List<DoseEvent> toRet = new ArrayList<>();
+        boolean next = dir.equalsIgnoreCase("next");
+        String sqlCompareAction = next ? ">" : "<";
+        String sqlDir = next ? "ASC" : "DESC";
+        try (Connection conn = MySQLConnection.create()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "SELECT DOSEEVENTS.doseEventId, " +
+                            "   DOSEEVENTS.scheduledDoseTime, " +
+                            "   DOSEEVENTS.actionDateTime, " +
+                            "   DOSEEVENTS.action, " +
+                            "   MEDS.medId," +
+                            "   MEDS.rxcui," +
+                            "   MEDS.name AS medName," +
+                            "   MEDS.doseamount," +
+                            "   MEDS.doseUnit," +
+                            "   MEDS.totalAmount," +
+                            "   MEDS.doseInstructions," +
+                            "   MEDS.firstTaken," +
+                            "   MEDS.lastDoseTaken," +
+                            "   MEDS.nextScheduledDose," +
+                            "   MEDS.active," +
+                            "   AMIGOUSERS.amigouserid," +
+                            "   AMIGOUSERS.picUrl, " +
+                            "   AMIGOUSERS.lastTimeDoseTaken," +
+                            "   AMIGOUSERS.nextTimeDoseScheduled," +
+                            "   AMIGOUSERS.name AS amigoName " +
+                            "FROM DOSEEVENTS " +
+                            "JOIN MEDS " +
+                            "  ON DOSEEVENTS.medId = MEDS.medId " +
+                            "JOIN AMIGOUSERS " +
+                            "  ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
+                            "WHERE DOSEEVENTS.scheduledDoseTime " + sqlCompareAction + " ? " +
+                            "  AND AMIGOUSERS.amigouserid = ? " +
+                            "ORDER BY DOSEEVENTS.scheduledDoseTime " + sqlDir
+            );
+            statement.setTimestamp(1, new Timestamp(startDate.getTime()));
+            statement.setLong(2, amigoUser.getId());
+
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                toRet.add(new DoseEventRowMapper().mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return toRet;
+    }
+
+    @Override
+    public void markMissedEvents() throws SQLException {
+        Connection conn = null;
+        try {
+            conn = MySQLConnection.create();
+            conn.setAutoCommit(false);
+
+            //First, get all events in the system whose scheduled time is over an hour ago and missing an action.
+            PreparedStatement statement = conn.prepareStatement(
+                "SELECT DOSEEVENTS.doseEventId, " +
+                    "   DOSEEVENTS.scheduledDoseTime, " +
+                    "   DOSEEVENTS.actionDateTime, " +
+                    "   DOSEEVENTS.action, " +
+                    "   MEDS.medId," +
+                    "   MEDS.rxcui," +
+                    "   MEDS.name AS medName," +
+                    "   MEDS.doseamount," +
+                    "   MEDS.doseUnit," +
+                    "   MEDS.totalAmount," +
+                    "   MEDS.doseInstructions," +
+                    "   MEDS.firstTaken," +
+                    "   MEDS.lastDoseTaken," +
+                    "   MEDS.nextScheduledDose," +
+                    "   MEDS.active," +
+                    "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
+                    "   AMIGOUSERS.lastTimeDoseTaken," +
+                    "   AMIGOUSERS.nextTimeDoseScheduled," +
+                    "   AMIGOUSERS.name AS amigoName " +
+                    "FROM DOSEEVENTS " +
+                    "JOIN MEDS " +
+                    "  ON DOSEEVENTS.medId = MEDS.medId " +
+                    "JOIN AMIGOUSERS " +
+                    "  ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
+                    "WHERE DOSEEVENTS.scheduledDoseTime <= ? " +
+                    "  AND DOSEEVENTS.action IS NULL "
+            );
+
+            statement.setTimestamp(1, new Timestamp(DateTime.now().minusHours(1).toDate().getTime()));
+
+            //While going through them, mark them as MISSED in the DB.
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                DoseEvent e = new DoseEventRowMapper().mapRow(rs);
+                e.setAction(EventType.MISSED);
+                e.setActionDateTime(new Date());
+                updateEventCall(conn, e);
+            }
+
+            conn.commit();
+
+        } finally {
+            conn.rollback();
+            conn.close();
         }
     }
 }
