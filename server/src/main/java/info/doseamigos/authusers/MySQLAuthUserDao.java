@@ -1,12 +1,12 @@
 package info.doseamigos.authusers;
 
-import info.doseamigos.amigousers.AmigoUser;
-import info.doseamigos.db.MySQLConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.db.MySQLConnection;
 
 /**
  * MySQL implementation  of AuthUserDao.
@@ -21,6 +21,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
                     "AUTHUSERS.GOOGLEREFID, " +
                     "AUTHUSERS.AMIGOUSERID," +
                     "AMIGOUSERS.NAME, " +
+                    "AMIGOUSERS.picUrl, " +
                     "AMIGOUSERS.LASTTIMEDOSETAKEN, " +
                     "AMIGOUSERS.NEXTTIMEDOSESCHEDULED " +
                     "FROM AUTHUSERS " +
@@ -49,6 +50,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
                     "AUTHUSERS.GOOGLEREFID, " +
                     "AUTHUSERS.AMIGOUSERID," +
                     "AMIGOUSERS.NAME, " +
+                    "AMIGOUSERS.picUrl, " +
                     "AMIGOUSERS.LASTTIMEDOSETAKEN, " +
                     "AMIGOUSERS.NEXTTIMEDOSESCHEDULED " +
                     "FROM AUTHUSERS " +
@@ -77,6 +79,7 @@ public class MySQLAuthUserDao implements AuthUserDao {
                     "AUTHUSERS.GOOGLEREFID, " +
                     "AUTHUSERS.AMIGOUSERID," +
                     "AMIGOUSERS.NAME, " +
+                    "AMIGOUSERS.picUrl, " +
                     "AMIGOUSERS.LASTTIMEDOSETAKEN, " +
                     "AMIGOUSERS.NEXTTIMEDOSESCHEDULED " +
                     "FROM AUTHUSERS " +
@@ -106,12 +109,29 @@ public class MySQLAuthUserDao implements AuthUserDao {
             PreparedStatement authUserStatement;
             if (user.getAuthUserId() != null) {
                 authUserStatement = conn.prepareStatement(
-                    "UPDATE AUTHUSERS SET email = ? WHERE AUTHUSERID=?"
+                    "UPDATE AUTHUSERS" +
+                        " SET email = ? WHERE AUTHUSERID=?"
                 );
                 authUserStatement.setString(1, user.getEmail());
                 authUserStatement.setLong(2, user.getAuthUserId());
                 authUserStatement.executeUpdate();
                 newAuthId = user.getAuthUserId();
+
+                PreparedStatement updateAmigo = conn.prepareStatement("" +
+                    "UPDATE AMIGOUSERS " +
+                        "SET name = ?, " +
+                        "    picUrl = ? " +
+                    " WHERE amigouserid IN ( " +
+                    "   SELECT amigouserid " +
+                    "     FROM AUTHUSERS " +
+                    "    WHERE authUserId = ?" +
+                    ")"
+                );
+
+                updateAmigo.setString(1, user.getAmigoUser().getName());
+                updateAmigo.setString(2, user.getAmigoUser().getPicture());
+                updateAmigo.setLong(3, user.getAuthUserId());
+                updateAmigo.execute();
             } else {
 
                 PreparedStatement amigoStatement = conn.prepareStatement(
@@ -162,7 +182,8 @@ public class MySQLAuthUserDao implements AuthUserDao {
     private AuthUser populateAuthUserFromRS(ResultSet resultSet) throws SQLException {
         AmigoUser amigoUser = new AmigoUser();
         amigoUser.setName(resultSet.getString("NAME"));
-        amigoUser.setAmigoUserId(resultSet.getLong("AMIGOUSERID"));
+        amigoUser.setId(resultSet.getLong("AMIGOUSERID"));
+        amigoUser.setPicture(resultSet.getString("picUrl"));
         AuthUser authUser = new AuthUser();
         authUser.setAmigoUser(amigoUser);
         authUser.setEmail(resultSet.getString("EMAIL"));

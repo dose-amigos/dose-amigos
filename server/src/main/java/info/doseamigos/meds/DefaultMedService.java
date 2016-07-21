@@ -32,7 +32,7 @@ public class DefaultMedService implements MedService {
     @Override
     public List<Med> medsForUser(AuthUser authUser, AmigoUser user) {
         //TODO add validation ensuring authUser can modify amigo's stuff.
-        return medDao.getMedsForAmigo((user.getAmigoUserId()));
+        return medDao.getMedsForAmigo((user.getId()));
     }
 
     @Override
@@ -48,6 +48,6 @@ public class DefaultMedService implements MedService {
 
     @Override
     public List<Med> medsForUserSystemCommand(AmigoUser user) {
-        return medDao.getMedsForAmigo((user.getAmigoUserId()));
+        return medDao.getMedsForAmigo((user.getId()));
     }
 }

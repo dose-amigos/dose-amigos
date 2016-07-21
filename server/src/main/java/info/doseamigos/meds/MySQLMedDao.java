@@ -1,10 +1,14 @@
 package info.doseamigos.meds;
 
-import info.doseamigos.db.MySQLConnection;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import info.doseamigos.db.MySQLConnection;
 
 /**
  * MySQL implementation of the {@link MedDao}.
@@ -25,7 +29,7 @@ public class MySQLMedDao implements MedDao {
                     "INSERT INTO MEDS(amigouserid, rxcui, name, doseamount, doseUnit, totalAmount, doseInstructions, firstTaken, lastDoseTaken, active) " +
                         "VALUES (?,?,?,?,?,?,?,?,?,'Y')"
                 );
-                insertStatement.setLong(1, med.getUser().getAmigoUserId());
+                insertStatement.setLong(1, med.getUser().getId());
                 insertStatement.setLong(2, med.getRxcui());
                 insertStatement.setString(3, med.getName());
                 insertStatement.setInt(4, med.getDoseAmount());
@@ -71,6 +75,9 @@ public class MySQLMedDao implements MedDao {
                     "      MEDS.nextScheduledDose," +
                     "      MEDS.active," +
                     "      AMIGOUSERS.amigouserid," +
+                    "      AMIGOUSERS.picUrl, " +
+                    "      AMIGOUSERS.lastTimeDoseTaken," +
+                    "      AMIGOUSERS.nextTimeDoseScheduled," +
                     "      AMIGOUSERS.name AS amigoName" +
                     " FROM MEDS" +
                     " JOIN AMIGOUSERS" +
@@ -105,6 +112,7 @@ public class MySQLMedDao implements MedDao {
                     "      MEDS.nextScheduledDose," +
                     "      MEDS.active," +
                     "      AMIGOUSERS.amigouserid," +
+                    "      AMIGOUSERS.picUrl, " +
                     "      AMIGOUSERS.lastTimeDoseTaken," +
                     "      AMIGOUSERS.nextTimeDoseScheduled," +
                     "      AMIGOUSERS.name AS amigoName" +

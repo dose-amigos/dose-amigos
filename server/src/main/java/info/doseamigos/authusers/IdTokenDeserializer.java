@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import info.doseamigos.amigousers.AmigoUserGuiceModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +29,11 @@ public class IdTokenDeserializer extends JsonDeserializer<AuthUser> {
      * Not using Guice to construct this to make life easier since it relies on Annotation stuff from Jackson.
      */
     public IdTokenDeserializer() {
-        authUserService = new DefaultAuthUserService(new MySQLAuthUserDao());
+        Injector injector = Guice.createInjector(
+            new AuthUserGuiceModule(),
+            new AmigoUserGuiceModule()
+        );
+        authUserService = injector.getInstance(AuthUserService.class);
     }
 
     /**

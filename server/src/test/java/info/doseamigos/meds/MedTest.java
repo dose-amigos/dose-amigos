@@ -22,9 +22,9 @@ public class MedTest {
     @Test
     public void testGetUser() throws Exception {
         Med med = new Med();
-        med.setUser(new AmigoUser(1, "test"));
+        med.setUser(new AmigoUser(1L, "test"));
 
-        assertEquals(med.getUser(), new AmigoUser(1, "test"));
+        assertEquals(med.getUser(), new AmigoUser(1L, "test"));
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -65,14 +65,14 @@ public class MedTest {
     public void testEquals() throws Exception {
         Med med1 = new Med(
             1L,
-            new AmigoUser(1, "test"),
+            new AmigoUser(1L, "test"),
             1,
             "Test Drug"
         );
 
         Med med2 = new Med(
             1L,
-            new AmigoUser(1, "test"),
+            new AmigoUser(1L, "test"),
             1,
             "Test Drug"
         );
@@ -83,11 +83,11 @@ public class MedTest {
         assertFalse(med1.equals(med2));
 
         med2.setMedId(1L);
-        med2.setUser(new AmigoUser(2, "test2"));
+        med2.setUser(new AmigoUser(2L, "test2"));
         assertFalse(med1.equals(med2));
 
 
-        med2.setUser(new AmigoUser(1, "test1"));
+        med2.setUser(new AmigoUser(1L, "test1"));
         med2.setRxcui(2L);
         assertFalse(med1.equals(med2));
 
@@ -100,14 +100,14 @@ public class MedTest {
     public void testHashCode() throws Exception {
         Med med1 = new Med(
             1L,
-            new AmigoUser(1, "test"),
+            new AmigoUser(1L, "test"),
             1,
             "Test Drug"
         );
 
         Med med2 = new Med(
             1L,
-            new AmigoUser(1, "test"),
+            new AmigoUser(1L, "test"),
             1,
             "Test Drug"
         );
@@ -118,11 +118,11 @@ public class MedTest {
         assertNotEquals(med1.hashCode(), med2.hashCode());
 
         med2.setMedId(1L);
-        med2.setUser(new AmigoUser(2, "test2"));
+        med2.setUser(new AmigoUser(2L, "test2"));
         assertNotEquals(med1.hashCode(), med2.hashCode());
 
 
-        med2.setUser(new AmigoUser(1, "test1"));
+        med2.setUser(new AmigoUser(1L, "test1"));
         med2.setRxcui(2L);
         assertNotEquals(med1.hashCode(), med2.hashCode());
 

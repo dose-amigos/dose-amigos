@@ -3,7 +3,6 @@ package info.doseamigos.amigousers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Simple Row Mapper for result sets to return Amigo Users.
@@ -16,6 +15,7 @@ public class AmigoUserRowMapper {
         Timestamp nextTimeDoseScheduled = rs.getTimestamp("nextTimeDoseScheduled");
         amigoUser.setLastTimeDoseTaken(lastTimeDoseTaken);
         amigoUser.setNextTimeDoseScheduled(nextTimeDoseScheduled);
+        amigoUser.setPicture(rs.getString("picUrl"));
         return amigoUser;
     }
 }

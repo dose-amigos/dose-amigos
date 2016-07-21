@@ -3,6 +3,7 @@ package info.doseamigos.authusers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.amigousers.AmigoUserService;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -25,10 +26,15 @@ import static java.util.Objects.requireNonNull;
 public class DefaultAuthUserService implements AuthUserService {
 
     private final AuthUserDao authUserDao;
+    private final AmigoUserService amigoUserService;
 
     @Inject
-    public DefaultAuthUserService(@Nonnull  AuthUserDao authUserDao) {
+    public DefaultAuthUserService(
+        @Nonnull AuthUserDao authUserDao,
+        @Nonnull AmigoUserService amigoUserService
+    ) {
         this.authUserDao = requireNonNull(authUserDao);
+        this.amigoUserService = requireNonNull(amigoUserService);
     }
 
     @Override
@@ -69,16 +75,24 @@ public class DefaultAuthUserService implements AuthUserService {
         if (toRet == null) {
             AmigoUser amigoUser= new AmigoUser();
             amigoUser.setName((String) infoFromGoogle.get("name"));
+            amigoUser.setPicture((String) infoFromGoogle.get("picture"));
             AuthUser authUser = new AuthUser();
             authUser.setAmigoUser(amigoUser);
             authUser.setEmail((String) infoFromGoogle.get("email"));
             authUser.setGoogleRef((String) infoFromGoogle.get("id"));
+
             try {
                 Long newId = authUserDao.save(authUser);
                 toRet = authUserDao.getById(newId);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+
+            toRet.getAmigoUser().setName((String) infoFromGoogle.get("name"));
+            toRet.getAmigoUser().setPicture((String) infoFromGoogle.get("picture"));
+            amigoUserService.updateAmigo(toRet, toRet.getAmigoUser());
+
         }
         return toRet;
     }

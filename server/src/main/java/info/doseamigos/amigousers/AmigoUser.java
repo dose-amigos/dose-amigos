@@ -1,10 +1,10 @@
 package info.doseamigos.amigousers;
 
+import java.util.Date;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import java.util.Date;
 
 import static java.util.Objects.requireNonNull;
 
@@ -12,29 +12,31 @@ import static java.util.Objects.requireNonNull;
  * POJO that represents an Amigo User.  Amigo Users are bare minimum, just a name and id.
  */
 public class AmigoUser {
-    private long amigoUserId;
+    private Long id;
     private String name;
 
     private Date lastTimeDoseTaken;
     private Date nextTimeDoseScheduled;
 
+    private String picture;
+
     public AmigoUser() {
     }
 
     public AmigoUser(
-        long amigoUserId,
+        Long id,
         String name
     ) {
-        this.setAmigoUserId(amigoUserId);
+        this.setId(id);
         this.setName(name);
     }
 
-    public long getAmigoUserId() {
-        return amigoUserId;
+    public Long getId() {
+        return id;
     }
 
-    public void setAmigoUserId(long amigoUserId) {
-        this.amigoUserId = amigoUserId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -59,6 +61,14 @@ public class AmigoUser {
 
     public void setNextTimeDoseScheduled(Date nextTimeDoseScheduled) {
         this.nextTimeDoseScheduled = nextTimeDoseScheduled;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

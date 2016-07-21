@@ -1,15 +1,15 @@
 package info.doseamigos.doseseries;
 
-import info.doseamigos.db.MySQLConnection;
-import info.doseamigos.meds.Med;
-import info.doseamigos.meds.MedRowMapper;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+
+import info.doseamigos.db.MySQLConnection;
+import info.doseamigos.meds.Med;
+import info.doseamigos.meds.MedRowMapper;
 
 /**
  * MySQL implementation for {@link DoseSeriesDao}.
@@ -99,6 +99,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     "   MEDS.nextScheduledDose," +
                     "   MEDS.active," +
                     "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
                     "   AMIGOUSERS.lastTimeDoseTaken," +
                     "   AMIGOUSERS.nextTimeDoseScheduled," +
                     "   AMIGOUSERS.name AS amigoName" +
@@ -157,6 +158,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     "   MEDS.nextScheduledDose," +
                     "   MEDS.active," +
                     "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
                     "   AMIGOUSERS.lastTimeDoseTaken," +
                     "   AMIGOUSERS.nextTimeDoseScheduled," +
                     "   AMIGOUSERS.name AS amigoName" +
