@@ -8,6 +8,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import info.doseamigos.ClientRequestObject;
 import info.doseamigos.CommonModule;
+import info.doseamigos.amigousers.AmigoUserGuiceModule;
+import info.doseamigos.doseevents.DoseEventsGuiceModule;
+import info.doseamigos.meds.MedGuiceModule;
+import info.doseamigos.meds.MedService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +31,9 @@ public class DoseSeriesWebService {
     public DoseSeriesWebService() {
         Injector injector = Guice.createInjector(
             new CommonModule(),
+            new AmigoUserGuiceModule(),
+            new MedGuiceModule(),
+            new DoseEventsGuiceModule(),
             new DoseSeriesGuiceModule()
         );
         objectMapper = injector.getInstance(ObjectMapper.class);

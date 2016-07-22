@@ -17,7 +17,7 @@ public class DoseSeries {
 
     private Med med;
 
-    private List<Integer> days;
+    private List<Integer> daysOfWeek;
 
     private List<Date> times;
 
@@ -37,12 +37,12 @@ public class DoseSeries {
         this.med = med;
     }
 
-    public List<Integer> getDays() {
-        return days;
+    public List<Integer> getDaysOfWeek() {
+        return daysOfWeek;
     }
 
-    public void setDays(List<Integer> days) {
-        this.days = days;
+    public void setDaysOfWeek(List<Integer> daysOfWeek) {
+        this.daysOfWeek = daysOfWeek;
     }
 
     public List<Date> getTimes() {

@@ -46,4 +46,10 @@ public interface DoseEventDao {
      * Single transaction that marks all events as missed if they're overdue by an hour.
      */
     void markMissedEvents() throws SQLException;
+
+    /**
+     * Creates all events passed in in the same connection.
+     * @param eventsToAdd The events to add.
+     */
+    void createMultiple(List<DoseEvent> eventsToAdd) throws SQLException;
 }

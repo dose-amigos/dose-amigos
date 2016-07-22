@@ -75,5 +75,9 @@ public interface DoseEventService {
      */
     List<DoseEvent> getDosesForPhone(AuthUser authUser, Date startDate, String dir);
 
-
+    /**
+     * Creates a weekly amount of DoseEvents for the DoseSeries.
+     * @param newSeries The series being used to create new DoseEvents.
+     */
+    void addWeeklySeriesForDoseSeries(DoseSeries newSeries);
 }

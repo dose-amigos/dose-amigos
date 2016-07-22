@@ -50,7 +50,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
             deleteAllExistingItems.executeUpdate();
 
             //Now add each item.
-            for (Integer day : series.getDays()) {
+            for (Integer day : series.getDaysOfWeek()) {
                 for (Date time : series.getTimes()) {
                     PreparedStatement addItem = conn.prepareStatement(
                         "INSERT INTO DOSESERIESITEM(seriesId, seriesDay, seriesTime) " +
@@ -80,7 +80,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
     public DoseSeries getById(Long id) {
         DoseSeries series = new DoseSeries();
         series.setSeriesId(id);
-        series.setDays(new ArrayList<Integer>());
+        series.setDaysOfWeek(new ArrayList<Integer>());
         series.setTimes(new ArrayList<Date>());
         try (Connection conn = MySQLConnection.create()) {
             PreparedStatement statement = conn.prepareStatement(
@@ -121,8 +121,8 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                 }
                 Integer seriesDay = rs.getInt("seriesDay");
                 Date seriesTime = new Date(rs.getTimestamp("seriesTime").getTime());
-                if (!series.getDays().contains(seriesDay)) {
-                    series.getDays().add(seriesDay);
+                if (!series.getDaysOfWeek().contains(seriesDay)) {
+                    series.getDaysOfWeek().add(seriesDay);
                 }
                 if (!series.getTimes().contains(seriesTime)) {
                     series.getTimes().add(seriesTime);
@@ -139,7 +139,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
     @Override
     public DoseSeries getForMed(Med lookupMed) {
         DoseSeries series = new DoseSeries();
-        series.setDays(new ArrayList<Integer>());
+        series.setDaysOfWeek(new ArrayList<Integer>());
         series.setTimes(new ArrayList<Date>());
         try (Connection conn = MySQLConnection.create()) {
             PreparedStatement statement = conn.prepareStatement(
@@ -184,8 +184,8 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                 }
                 Integer seriesDay = rs.getInt("seriesDay");
                 Date seriesTime = new Date(rs.getTimestamp("seriesTime").getTime());
-                if (!series.getDays().contains(seriesDay)) {
-                    series.getDays().add(seriesDay);
+                if (!series.getDaysOfWeek().contains(seriesDay)) {
+                    series.getDaysOfWeek().add(seriesDay);
                 }
                 if (!series.getTimes().contains(seriesTime)) {
                     series.getTimes().add(seriesTime);
