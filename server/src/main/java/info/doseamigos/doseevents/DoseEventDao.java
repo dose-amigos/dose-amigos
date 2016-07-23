@@ -1,11 +1,11 @@
 package info.doseamigos.doseevents;
 
-import info.doseamigos.amigousers.AmigoUser;
-import info.doseamigos.meds.Med;
-
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+
+import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.meds.Med;
 
 /**
  * Dao for creating, getting, and updating DoseEvents.
@@ -39,4 +39,11 @@ public interface DoseEventDao {
      * @param doseEvents The events to update.
      */
     void updateDoseEvents(List<DoseEvent> doseEvents) throws SQLException;
+
+    List<DoseEvent> getEventsForUser(AmigoUser amigoUser, Date startDate, String dir);
+
+    /**
+     * Single transaction that marks all events as missed if they're overdue by an hour.
+     */
+    void markMissedEvents() throws SQLException;
 }

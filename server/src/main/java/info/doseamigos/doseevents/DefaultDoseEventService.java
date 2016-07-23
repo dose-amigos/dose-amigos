@@ -12,7 +12,9 @@ import org.joda.time.DateTime;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import static java.lang.Math.abs;
 import static java.util.Objects.requireNonNull;
@@ -55,32 +57,11 @@ public class DefaultDoseEventService implements DoseEventService {
         List<AmigoUser> amigos = amigoUserService.getAllAmigosInSystem();
         for (AmigoUser amigoUser : amigos) {
             List<Med> meds = medService.medsForUserSystemCommand(amigoUser);
-            int curDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
             for (Med med : meds) {
+
                 //First Create new events based on the dose series for the week.
-                List<DoseEvent> newEvents = new ArrayList<>();
                 DoseSeries series = doseSeriesService.getForMed(med);
-                for (Date time : series.getTimes()) {
-                    for (int day : series.getDays()) {
-                        DateTime now = DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
-                        DoseEvent newEvent = new DoseEvent();
-                        newEvent.setMed(med);
-                        DateTime dateTime = new DateTime(time);
-
-                        //Number of milliseconds since midnight of the time saved in the DB.
-                        int millisOfDay = dateTime.getMillisOfDay();
-
-                        //Math to determine number of days to add to today for next dose.
-                        //EXAMPLE today is Friday (6) and next dose is Sunday (1).
-                        // (1-6)%7 results in -5, add 7 and mod that by 7 to get 2, add 2 days to Sunday.
-                        int daysToAdd = (((day-curDayOfWeek) % 7) + 7) % 7;
-
-                        Date newScheduledTime = now.plusDays(daysToAdd).plusMillis(millisOfDay).toDate();
-
-                        newEvent.setScheduledDateTime(newScheduledTime);
-                        newEvents.add(newEvent);
-                    }
-                }
+                List<DoseEvent> newEvents = generateWeekEventsForSeries(series);
 
                 //Now, we save each dose event to the database.
                 List<DoseEvent> existingEvents = doseEventDao.getDoseEventForMedAfter(med,
@@ -108,16 +89,64 @@ public class DefaultDoseEventService implements DoseEventService {
     }
 
     @Override
-    public List<DoseEvent> getEventsForUserToday(AuthUser authUser, AmigoUser amigoUser) {
-        //TODO validation. Ensure auth user can see this amigo user.
+    public List<DoseEvent> generateWeekEventsForSeries(DoseSeries series) {
+        int curDayOfWeek = DateTime.now().getDayOfWeek();
+        Med med = series.getMed();
+        List<DoseEvent> newEvents = new ArrayList<>();
+        for (Date time : series.getTimes()) {
+            for (int day : series.getDays()) {
+                DateTime now = DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
+                DoseEvent newEvent = new DoseEvent();
+                newEvent.setMed(med);
+                DateTime dateTime = new DateTime(time);
 
+                //Number of milliseconds since midnight of the time saved in the DB.
+                int millisOfDay = dateTime.getMillisOfDay();
+
+                //Math to determine number of days to add to today for next dose.
+                //EXAMPLE today is Friday (6) and next dose is Sunday (1).
+                // (1-6)%7 results in -5, add 7 and mod that by 7 to get 2, add 2 days to Sunday.
+                //Note that this will add events for today if there are medications to take today.
+                int daysToAdd = (((day-curDayOfWeek) % 7) + 7) % 7;
+
+                Date newScheduledTime = now.plusDays(daysToAdd).plusMillis(millisOfDay).toDate();
+
+                newEvent.setScheduledDateTime(newScheduledTime);
+                newEvents.add(newEvent);
+            }
+        }
+        return newEvents;
+    }
+
+    @Override
+    public void markMissedEvents() {
+        try {
+            doseEventDao.markMissedEvents();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<DoseEvent> getEventsForUserToday(AuthUser authUser, AmigoUser amigoUser) {
+        List<AmigoUser> amigosForAuthUser = amigoUserService.getAmigosForAuthUser(authUser);
+        amigosForAuthUser.add(authUser.getAmigoUser());
+        if (!amigosForAuthUser.contains(amigoUser)) {
+            throw new RuntimeException("You cannot see this amigo's doses.");
+        }
         return doseEventDao.getEventsForUserToday(amigoUser);
 
     }
 
     @Override
     public List<DoseEvent> updateDoseEvents(AuthUser authUser, List<DoseEvent> doseEvents) {
-        //TODO validation.  Ensure that authUser can modify these dose events.
+        List<AmigoUser> amigosForAuthUser = amigoUserService.getAmigosForAuthUser(authUser);
+        amigosForAuthUser.add(authUser.getAmigoUser());
+        for (DoseEvent de : doseEvents) {
+            if (!amigosForAuthUser.contains(de.getMed().getUser())) {
+                throw new RuntimeException("You cannot modify this dose event.");
+            }
+        }
 
         try {
             doseEventDao.updateDoseEvents(doseEvents);
@@ -126,5 +155,26 @@ public class DefaultDoseEventService implements DoseEventService {
         }
 
         return doseEvents;
+    }
+
+    @Override
+    public List<DoseEvent> getDosesForPhone(AuthUser authUser, Date startDate, String dir) {
+        List<DoseEvent> allEvents = doseEventDao.getEventsForUser(authUser.getAmigoUser(), startDate, dir);
+        List<DoseEvent> toRet = new ArrayList<>(allEvents.size());
+        //If there are events to look at, look at them.
+        if (!allEvents.isEmpty()) {
+            Date nextDoseTime = allEvents.get(0).getScheduledDateTime();
+            for (DoseEvent de : allEvents) {
+                long diff = abs(de.getScheduledDateTime().getTime() - nextDoseTime.getTime());
+                //If the event is within an hour of the start dose time of the events, add it.
+                //else break out of this loop as we ordered it by date and we're done
+                if (diff < (1000*60*60)) {
+                    toRet.add(de);
+                } else {
+                    break;
+                }
+            }
+        }
+        return toRet;
     }
 }
