@@ -1,7 +1,9 @@
 package info.doseamigos.authusers;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
@@ -248,6 +250,39 @@ public class MySQLAuthUserDao implements AuthUserDao {
             conn.close();
         }
 
+    }
+
+    @Override
+    public List<AuthUser> lookupByName(String name) throws SQLException {
+        try (Connection conn = MySQLConnection.create()) {
+            PreparedStatement getInfo = conn.prepareStatement(
+                "SELECT AUTHTOKENCACHE.idToken, " +
+                    "   AUTHTOKENCACHE.dateAdded, " +
+                    "   AUTHTOKENCACHE.duration, " +
+                    "   AUTHUSERS.authUserId, " +
+                    "   AUTHUSERS.EMAIL, " +
+                    "   AUTHUSERS.GOOGLEREFID, " +
+                    "   AUTHUSERS.AMIGOUSERID," +
+                    "   AMIGOUSERS.NAME, " +
+                    "   AMIGOUSERS.picUrl, " +
+                    "   AMIGOUSERS.LASTTIMEDOSETAKEN, " +
+                    "   AMIGOUSERS.NEXTTIMEDOSESCHEDULED " +
+                    "FROM AUTHTOKENCACHE " +
+                    "JOIN AUTHUSERS " +
+                    "  ON AUTHTOKENCACHE.authUserId = AUTHUSERS.authUserId " +
+                    "JOIN AMIGOUSERS " +
+                    "  ON AUTHUSERS.AMIGOUSERID =AMIGOUSERS.AMIGOUSERID " +
+                    "WHERE UPPER(AMIGOUSERS.NAME) = UPPER(?);"
+            );
+            getInfo.setString(1, name);
+
+            ResultSet rs = getInfo.executeQuery();
+            List<AuthUser> users = new ArrayList<>();
+            while (rs.next()) {
+                users.add(populateAuthUserFromRS(rs));
+            }
+            return users;
+        }
     }
 
     private AuthUser populateAuthUserFromRS(ResultSet resultSet) throws SQLException {

@@ -1,6 +1,7 @@
 package info.doseamigos.authusers;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Service for handling any logic related to AuthUsers.
@@ -31,4 +32,11 @@ public interface AuthUserService {
      * @return The Auth user associated with it.
      */
     AuthUser getByIdToken(String idToken) throws IOException;
+
+    /**
+     * Looks up potential amigo users by their name.  Only AuthUsers can be added to share requests.
+     * @param name The name to look up.
+     * @return The auth users that match that name.
+     */
+    List<AuthUser> lookupByName(String name);
 }

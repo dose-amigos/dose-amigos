@@ -1,6 +1,7 @@
 package info.doseamigos.authusers;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Data Access Object for grabbing AuthUsers' by their properties and saving the updated AuthUser.
@@ -49,4 +50,11 @@ public interface AuthUserDao {
      * @param durationInSeconds The length of time in seconds it lasts.
      */
     void storeInfo(AuthUser user, String token, Integer durationInSeconds) throws SQLException;
+
+    /**
+     * Lookup AuthUsers by name.
+     * @param name The name to look up
+     * @return The auth users with that name.
+     */
+    List<AuthUser> lookupByName(String name) throws SQLException;
 }

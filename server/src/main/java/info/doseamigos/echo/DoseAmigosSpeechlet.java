@@ -1,12 +1,14 @@
 package info.doseamigos.echo;
 
 import com.amazon.speech.slu.Intent;
+import com.amazon.speech.slu.Slot;
 import com.amazon.speech.speechlet.*;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
 import com.amazonaws.services.lambda.runtime.Client;
 import com.google.api.client.util.DateTime;
+import com.google.api.client.util.Joiner;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import info.doseamigos.amigousers.AmigoUserGuiceModule;
@@ -17,17 +19,26 @@ import info.doseamigos.doseevents.DoseEvent;
 import info.doseamigos.doseevents.DoseEventService;
 import info.doseamigos.doseevents.DoseEventsGuiceModule;
 import info.doseamigos.doseevents.EventType;
+import info.doseamigos.doseseries.DoseSeries;
 import info.doseamigos.doseseries.DoseSeriesGuiceModule;
+import info.doseamigos.doseseries.DoseSeriesService;
 import info.doseamigos.meds.Med;
 import info.doseamigos.meds.MedGuiceModule;
 import info.doseamigos.meds.MedService;
+import info.doseamigos.sharerequests.ShareRequest;
+import info.doseamigos.sharerequests.ShareRequestGuiceModule;
+import info.doseamigos.sharerequests.ShareRequestService;
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.IOException;
+import java.time.DayOfWeek;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -37,29 +48,33 @@ import static java.lang.Math.abs;
 public class DoseAmigosSpeechlet implements Speechlet {
 
     private static final Logger log = LoggerFactory.getLogger(DoseAmigosSpeechlet.class);
-    private MedService medService;
     private AuthUserService authUserService;
     private DoseEventService doseEventService;
+    private DoseSeriesService doseSeriesService;
+    private ShareRequestService shareRequestService;
+
+    private AuthUser sessionUser;
 
     @Override
     public void onSessionStarted(SessionStartedRequest request, Session session) throws SpeechletException {
         Injector injector = Guice.createInjector(
             new DoseEventsGuiceModule(),
+            new ShareRequestGuiceModule(),
             new DoseSeriesGuiceModule(),
             new AmigoUserGuiceModule(),
             new MedGuiceModule(),
             new AuthUserGuiceModule()
         );
-        medService = injector.getInstance(MedService.class);
         authUserService = injector.getInstance(AuthUserService.class);
         doseEventService = injector.getInstance(DoseEventService.class);
+        doseSeriesService = injector.getInstance(DoseSeriesService.class);
+        shareRequestService = injector.getInstance(ShareRequestService.class);
+        sessionUser = getSessionUser(session);
     }
 
     @Override
     public SpeechletResponse onLaunch(LaunchRequest request, Session session) throws SpeechletException {
-        AuthUser loggedInUser = getSessionUser(session);
-
-        String name = loggedInUser.getAmigoUser().getName();
+        String name = sessionUser.getAmigoUser().getName();
         PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
         outputSpeech.setText("Welcome to Dose Amigos " + name + ", you can add a new medication.");
         Reprompt reprompt = new Reprompt();
@@ -87,37 +102,110 @@ public class DoseAmigosSpeechlet implements Speechlet {
     @Override
     public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
         Intent intent = request.getIntent();
-        String intentName = (intent != null) ? intent.getName() : null;
-        AuthUser sessionUser = getSessionUser(session);
-        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-        SimpleCard card = new SimpleCard();
-
+        String intentName = (intent != null) ? intent.getName() : "";
+        log.info("input: " + request.getIntent().getSlots());
         switch (intentName) {
             case "TakeMeds":
                 log.info("recording med taking");
-                return takeMeds(sessionUser);
+                return takeMeds();
             case "ListMeds":
                 log.info("Getting list of medications for user");
-                return listMedsResponse(sessionUser);
+                return listMedsResponse();
             case "AddMed":
-                String medName = intent.getSlot("MedName").getValue();
-                if (medName == null || medName.trim().isEmpty()) {
-                    throw new RuntimeException("Med Name is null or empty");
+                log.info("Initializing add med");
+                return addMed_init(session);
+            case "AddMedLocation":
+                log.info("Getting location for timezone reasons");
+                try {
+                    return addMed_location(session, intent);
+                } catch (IOException e) {
+                    log.error("Something horrible happened", e);
+                    throw new RuntimeException(e);
                 }
-                Med newMed = medService.addByName(sessionUser, medName);
-                log.info("Added new med: " + newMed);
-                outputSpeech.setText(String.format("You've added %s to your list of medications.", newMed.getName()));
-
-                card.setTitle("Added Medication");
-                card.setContent("You added the following Medication: " + newMed);
-                return SpeechletResponse.newTellResponse(outputSpeech, card);
+            case "AddMedName":
+                log.info("Getting med name");
+                return addMed_name(session, intent);
+            case "AddMedDays":
+                log.info("Getting med days");
+                return addMed_Days(session, intent);
+            case "AddMedTimes":
+                log.info("Getting med times and saving to DB");
+                return addMed_Times(session, intent);
+            case "AddAmigo":
+                log.info("Initializing Adding an Amigo");
+                return addAmigo_Init();
+            case "AddAmigoLookup":
+                log.info("Looking up an amigo by name");
+                return addAmigo_Name(session, intent, 0);
+            case "AddAmigoConfirmation":
+                log.info("Confirming amigo.");
+                return addAmigo_Confirmation(session, intent);
 
             default:
                 throw new RuntimeException("Invalid Intent Name found.");
         }
     }
 
-    private SpeechletResponse listMedsResponse(AuthUser sessionUser) {
+    private SpeechletResponse addAmigo_Init() {
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Amigo");
+        card.setContent("What is your amigo's name?");
+
+        outputSpeech.setText("What is your amigo's name?");
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Please tell me your amigo's name?");
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+
+    private SpeechletResponse addAmigo_Name(Session session, Intent intent, int index) {
+        String name = intent.getSlot("amigoName").getValue();
+        List<AuthUser> matches = authUserService.lookupByName(name);
+        session.setAttribute("index", index);
+        session.setAttribute("email", matches.get(index).getEmail());
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Amigo");
+        card.setContent("Is your amigo's email address <say-as interpret-as=" + matches.get(0).getEmail() + ">hello</say-as>.");
+
+        outputSpeech.setText("Is your amigo's email address <say-as interpret-as=\"" + matches.get(0).getEmail() + "\">hello</say-as>.");
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Is your amigo's email address <say-as interpret-as=\"" + matches.get(0).getEmail() + "\">hello</say-as>.");
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+    private SpeechletResponse addAmigo_Confirmation(Session session, Intent intent) {
+        String name = intent.getSlot("confirm").getValue();
+        Integer index = (Integer) session.getAttribute("index");
+        String email = (String) session.getAttribute("email");
+        if (name.equalsIgnoreCase("YES")) {
+            ShareRequest shareRequest = new ShareRequest();
+            shareRequest.setSharedAmigo(sessionUser.getAmigoUser());
+            shareRequest.setTargetUserEmail(email);
+            shareRequestService.addNewShareRequest(sessionUser, shareRequest);
+
+            PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+            SimpleCard card = new SimpleCard();
+            card.setTitle("Adding Amigo");
+            card.setContent("We have sent a share request.");
+
+            outputSpeech.setText("We have sent a share request.");
+
+            return SpeechletResponse.newTellResponse(outputSpeech, card);
+        } else {
+            return addAmigo_Name(session, intent, ++index);
+        }
+    }
+
+    private SpeechletResponse listMedsResponse() {
         PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
         SimpleCard card = new SimpleCard();
         List<DoseEvent> doseEvents = doseEventService.getEventsForUserToday(sessionUser, sessionUser.getAmigoUser());
@@ -160,7 +248,7 @@ public class DoseAmigosSpeechlet implements Speechlet {
         return builder.toString();
     }
 
-    private SpeechletResponse takeMeds(AuthUser sessionUser) {
+    private SpeechletResponse takeMeds() {
         PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
         SimpleCard card = new SimpleCard();
 
@@ -191,6 +279,134 @@ public class DoseAmigosSpeechlet implements Speechlet {
         card.setContent(builder.toString());
         return SpeechletResponse.newTellResponse(outputSpeech, card);
 
+    }
+
+    private SpeechletResponse addMed_init(Session session) {
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Medication");
+        card.setContent("Please tell us your location for properly timed reminders");
+
+        outputSpeech.setText("In order to set the times correctly to your timezone, I need to know your location.");
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Please tell me the city and state you're in.");
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+    private SpeechletResponse addMed_location(Session session, Intent intent) throws IOException {
+        String city = intent.getSlot("city").getValue();
+        String state = intent.getSlot("state").getValue();
+        Map<String, Object> timezoneInfo = new LocationToTimezoneConverter().getTimezone(city + " " + state);
+        session.setAttribute("timezone", timezoneInfo.get("timeZoneId"));
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Medication");
+        card.setContent("We received your location, now we need the name of your medication.");
+
+        outputSpeech.setText("We've received your location, thank you. Now please tell me the name of your medication");
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Please tell me the name of your medication.");
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+    private SpeechletResponse addMed_name(Session session, Intent intent) {
+        String medName = intent.getSlot("medName").getValue();
+        session.setAttribute("medName", medName);
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Medication");
+        card.setContent("We received the name of the medication: " + medName);
+
+        outputSpeech.setText("The name of the medication we receieved is " + medName + ".  Now tell me the days you take the medication.");
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Please tell us what days you take this medication.  You can say each day like Monday, Wednesday, Friday, or you can say every day");
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+    private SpeechletResponse addMed_Days(Session session, Intent intent) {
+        List<Integer> days = new ArrayList<>(7);
+        List<Slot> slots = new ArrayList<>(intent.getSlots().values());
+        for (Slot slot : slots) {
+            String day = slot.getValue();
+            if (day != null && day.equalsIgnoreCase("EVERYDAY")) {
+                days = (Arrays.asList(1,2,3,4,5,6,7));
+                break;
+            }
+            if (day != null) {
+                days.add(DayOfWeekConverter.toDayOfWeek(day).getValue());
+            }
+        }
+        session.setAttribute("daysOfWeek", days);
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Adding Medication");
+        card.setContent("We received the days the you specified");
+
+        StringBuilder sb = new StringBuilder().append("The days you take the medication we receieved are ");
+        boolean isFirst = true;
+        for (Integer dayVal : days) {
+            if (!isFirst) {
+                sb.append(", ");
+            }
+            isFirst = false;
+            sb.append(DayOfWeek.of(dayVal));
+
+        }
+        sb.append(".  Now please tell us the times during the day you'll take this medication.");
+        outputSpeech.setText(sb.toString());
+
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
+        repromptSpeech.setText("Please tell us what times during the day you take this medication.  You can say up to 6 different times.");
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
+    }
+
+    private SpeechletResponse addMed_Times(Session session, Intent intent) {
+        List<Date> times = new ArrayList<>(6);
+        List<Slot> slots = new ArrayList<>(intent.getSlots().values());
+        for (Slot slot : slots) {
+            String time = slot.getValue();
+            log.info("time:" + time);
+            if (time != null && !time.isEmpty()) {
+                Date timeOfDay = LocalTime.parse(time).toDateTimeToday(
+                    DateTimeZone.forTimeZone(TimeZone.getTimeZone((String) session.getAttribute("timezone")))).toDate();
+                times.add(timeOfDay);
+            }
+        }
+
+        DoseSeries series = new DoseSeries();
+        series.setDaysOfWeek((List<Integer>) session.getAttribute("daysOfWeek"));
+        series.setTimesOfDay(times);
+        Med med = new Med();
+        med.setName((String) session.getAttribute("medName"));
+        med.setDoseUnit("dose");
+        med.setDoseAmount(1);
+        med.setUser(sessionUser.getAmigoUser());
+        series.setMed(med);
+
+        DoseSeries savedSeries = doseSeriesService.addSeries(sessionUser, series);
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Added Medication");
+        card.setContent("");
+
+        outputSpeech.setText("We have added " + savedSeries.getMed().getName() + " to your list of medications.");
+
+        return SpeechletResponse.newTellResponse(outputSpeech, card);
     }
 
     @Override
