@@ -7,8 +7,6 @@ import java.io.IOException;
  */
 public interface AuthUserService {
 
-    String getAccessToken(String idToken) throws IOException;
-
     /**
      * Verifies that a accessToken is valid and grabs the AuthUser associated with
      * that user from the DB.
@@ -25,4 +23,12 @@ public interface AuthUserService {
      * @throws IllegalArgumentException if any fields on the user are in an invalid state.
      */
     AuthUser modifyAuthUser(AuthUser updatedAuthUser);
+
+    /**
+     * Gets a user from the cache by id token.  If it's not in the cache or is expired,
+     * it'll call the service for verification and store it in the cache.
+     * @param idToken The id token to look at.
+     * @return The Auth user associated with it.
+     */
+    AuthUser getByIdToken(String idToken) throws IOException;
 }

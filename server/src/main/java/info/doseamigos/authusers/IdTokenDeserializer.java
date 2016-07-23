@@ -56,11 +56,7 @@ public class IdTokenDeserializer extends JsonDeserializer<AuthUser> {
             if (matcher.matches()) {
                 idToken = matcher.group(1);
             }
-            String accessToken = authUserService.getAccessToken(idToken);
-            if (accessToken == null) {
-                logger.error("Somehow got a blank access token from Auth0: " + idToken);
-            }
-            return authUserService.getByToken(accessToken);
+            return authUserService.getByIdToken(idToken);
         }
         return new ObjectMapper().treeToValue(node, AuthUser.class);
     }

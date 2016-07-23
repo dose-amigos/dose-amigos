@@ -19,7 +19,7 @@ public class DoseSeries {
 
     private List<Integer> daysOfWeek;
 
-    private List<Date> times;
+    private List<Date> timesOfDay;
 
     public Long getSeriesId() {
         return seriesId;
@@ -45,12 +45,12 @@ public class DoseSeries {
         this.daysOfWeek = daysOfWeek;
     }
 
-    public List<Date> getTimes() {
-        return times;
+    public List<Date> getTimesOfDay() {
+        return timesOfDay;
     }
 
-    public void setTimes(List<Date> times) {
-        this.times = times;
+    public void setTimesOfDay(List<Date> timesOfDay) {
+        this.timesOfDay = timesOfDay;
     }
 
     @Override

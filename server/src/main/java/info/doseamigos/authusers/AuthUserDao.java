@@ -34,4 +34,19 @@ public interface AuthUserDao {
      * @return The saved user.
      */
     Long save(AuthUser user) throws SQLException;
+
+    /**
+     * Gets an auth user by token.
+     * @param idToken The id token to look up the cached user for.
+     * @return The cached user or null if the value is expired.
+     */
+    AuthUser getByIdToken(String idToken) throws SQLException;
+
+    /**
+     * Stores caching info to the DB.
+     * @param user The user to store
+     * @param token The token for that user
+     * @param durationInSeconds The length of time in seconds it lasts.
+     */
+    void storeInfo(AuthUser user, String token, Integer durationInSeconds) throws SQLException;
 }

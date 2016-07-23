@@ -96,7 +96,7 @@ public class DefaultDoseEventService implements DoseEventService {
         int curDayOfWeek = DateTime.now().getDayOfWeek();
         Med med = series.getMed();
         List<DoseEvent> newEvents = new ArrayList<>();
-        for (Date time : series.getTimes()) {
+        for (Date time : series.getTimesOfDay()) {
             for (int day : series.getDaysOfWeek()) {
                 DateTime now = DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
                 DoseEvent newEvent = new DoseEvent();
