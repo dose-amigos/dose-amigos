@@ -66,23 +66,26 @@ public class DefaultDoseEventService implements DoseEventService {
                 //Now, we save each dose event to the database.
                 List<DoseEvent> existingEvents = doseEventDao.getDoseEventForMedAfter(med,
                     DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).toDate());
+
+                List<DoseEvent> eventsToAdd = new ArrayList<>();
                 for (DoseEvent event : newEvents) {
-                    try {
-                        boolean added = false;
-                        //If any existing event is within a minute, we'll assume the event was already added.
-                        for (DoseEvent existingEvent : existingEvents) {
-                            long difference = existingEvent.getScheduledDateTime().getTime()
-                                - event.getScheduledDateTime().getTime();
-                            if (abs(difference) < 60000) {
-                                added = true;
-                            }
+                    boolean added = false;
+                    //If any existing event is within a minute, we'll assume the event was already added.
+                    for (DoseEvent existingEvent : existingEvents) {
+                        long difference = existingEvent.getScheduledDateTime().getTime()
+                            - event.getScheduledDateTime().getTime();
+                        if (abs(difference) < 60000) {
+                            added = true;
                         }
-                        if (!added) {
-                            doseEventDao.create(event);
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
                     }
+                    if (!added) {
+                        eventsToAdd.add(event);
+                    }
+                }
+                try {
+                    doseEventDao.createMultiple(eventsToAdd);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -93,8 +96,8 @@ public class DefaultDoseEventService implements DoseEventService {
         int curDayOfWeek = DateTime.now().getDayOfWeek();
         Med med = series.getMed();
         List<DoseEvent> newEvents = new ArrayList<>();
-        for (Date time : series.getTimes()) {
-            for (int day : series.getDays()) {
+        for (Date time : series.getTimesOfDay()) {
+            for (int day : series.getDaysOfWeek()) {
                 DateTime now = DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0);
                 DoseEvent newEvent = new DoseEvent();
                 newEvent.setMed(med);
@@ -176,5 +179,15 @@ public class DefaultDoseEventService implements DoseEventService {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public void addWeeklySeriesForDoseSeries(DoseSeries newSeries) {
+        List<DoseEvent> eventsToAdd = generateWeekEventsForSeries(newSeries);
+        try {
+            doseEventDao.createMultiple(eventsToAdd);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

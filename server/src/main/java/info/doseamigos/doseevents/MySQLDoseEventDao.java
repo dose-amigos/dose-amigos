@@ -26,23 +26,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
 
-            PreparedStatement insertStatement = conn.prepareStatement(
-                "INSERT INTO DOSEEVENTS(scheduledDoseTime, medId) " +
-                    "VALUES (?, ?)"
-            );
-
-            insertStatement.setTimestamp(1, new Timestamp(doseEvent.getScheduledDateTime().getTime()));
-            insertStatement.setLong(2, doseEvent.getMed().getMedId());
-
-            insertStatement.executeUpdate();
-
-            PreparedStatement getIdStatement = conn.prepareStatement(
-                "SELECT LAST_INSERT_ID() AS doseEventId"
-            );
-
-            ResultSet rs = getIdStatement.executeQuery();
-            rs.next();
-            toRet = rs.getLong("doseEventId");
+            toRet = createEvent(doseEvent, conn);
 
             conn.commit();
 
@@ -52,6 +36,27 @@ public class MySQLDoseEventDao implements DoseEventDao {
                 conn.close();
             }
         }
+        return toRet;
+    }
+
+    public Long createEvent(DoseEvent doseEvent, Connection conn) throws SQLException {
+        Long toRet;PreparedStatement insertStatement = conn.prepareStatement(
+            "INSERT INTO DOSEEVENTS(scheduledDoseTime, medId) " +
+                "VALUES (?, ?)"
+        );
+
+        insertStatement.setTimestamp(1, new Timestamp(doseEvent.getScheduledDateTime().getTime()));
+        insertStatement.setLong(2, doseEvent.getMed().getMedId());
+
+        insertStatement.executeUpdate();
+
+        PreparedStatement getIdStatement = conn.prepareStatement(
+            "SELECT LAST_INSERT_ID() AS doseEventId"
+        );
+
+        ResultSet rs = getIdStatement.executeQuery();
+        rs.next();
+        toRet = rs.getLong("doseEventId");
         return toRet;
     }
 
@@ -290,6 +295,22 @@ public class MySQLDoseEventDao implements DoseEventDao {
 
             conn.commit();
 
+        } finally {
+            conn.rollback();
+            conn.close();
+        }
+    }
+
+    @Override
+    public void createMultiple(List<DoseEvent> eventsToAdd) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = MySQLConnection.create();
+            conn.setAutoCommit(false);
+            for (DoseEvent doseEvent : eventsToAdd) {
+                createEvent(doseEvent, conn);
+            }
+            conn.commit();
         } finally {
             conn.rollback();
             conn.close();

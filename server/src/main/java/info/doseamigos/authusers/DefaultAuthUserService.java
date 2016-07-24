@@ -37,24 +37,6 @@ public class DefaultAuthUserService implements AuthUserService {
         this.amigoUserService = requireNonNull(amigoUserService);
     }
 
-    @Override
-    public String getAccessToken(String idToken) throws IOException {
-        HttpGet httpGet = new HttpGet("https://mckoon.auth0.com/tokeninfo?id_token=" + idToken);
-        HttpClient client = HttpClients.createDefault();
-        HttpResponse response = client.execute(httpGet);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> idTokenResults = objectMapper.readValue(response.getEntity().getContent(), objectMapper.getTypeFactory()
-            .constructMapType(HashMap.class, String.class, Object.class));
-        String toRet = null;
-        for (Map<String, Object> identity : (List<Map<String, Object>>) idTokenResults.get("identities")) {
-            if (identity.get("provider").equals("google-oauth2")) {
-                toRet = (String) identity.get("access_token");
-            }
-        }
-        return toRet;
-    }
-
 
     @Override
     public AuthUser getByToken(String accessToken) {
@@ -71,7 +53,11 @@ public class DefaultAuthUserService implements AuthUserService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        AuthUser toRet = authUserDao.getByGoogleRef((String) infoFromGoogle.get("id"));
+        return getOrCreateAuthUser(infoFromGoogle, (String) infoFromGoogle.get("id"));
+    }
+
+    public AuthUser getOrCreateAuthUser(Map<String, Object> infoFromGoogle, String id) {
+        AuthUser toRet = authUserDao.getByGoogleRef(id);
         if (toRet == null) {
             AmigoUser amigoUser= new AmigoUser();
             amigoUser.setName((String) infoFromGoogle.get("name"));
@@ -79,7 +65,7 @@ public class DefaultAuthUserService implements AuthUserService {
             AuthUser authUser = new AuthUser();
             authUser.setAmigoUser(amigoUser);
             authUser.setEmail((String) infoFromGoogle.get("email"));
-            authUser.setGoogleRef((String) infoFromGoogle.get("id"));
+            authUser.setGoogleRef(id);
 
             try {
                 Long newId = authUserDao.save(authUser);
@@ -144,5 +130,43 @@ public class DefaultAuthUserService implements AuthUserService {
     @Override
     public AuthUser modifyAuthUser(AuthUser updatedAuthUser) {
         return null; //TODO do this.
+    }
+
+    @Override
+    public AuthUser getByIdToken(String idToken) throws IOException {
+
+        try {
+            AuthUser fromCache = authUserDao.getByIdToken(idToken);
+            if (fromCache != null) {
+                return fromCache;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        HttpGet httpGet = new HttpGet("https://mckoon.auth0.com/tokeninfo?id_token=" + idToken);
+        HttpClient client = HttpClients.createDefault();
+        HttpResponse response = client.execute(httpGet);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> idTokenResults = objectMapper.readValue(response.getEntity().getContent(), objectMapper.getTypeFactory()
+            .constructMapType(HashMap.class, String.class, Object.class));
+
+        String id = null;
+        Integer expiresTime = null;
+        for (Map<String, Object> identity : (List<Map<String, Object>>) idTokenResults.get("identities")) {
+            if (identity.get("provider").equals("google-oauth2")) {
+                id = (String) identity.get("user_id");
+                expiresTime = (Integer) identity.get("expires_in");
+            }
+        }
+
+        AuthUser authUser = getOrCreateAuthUser(idTokenResults, id);
+        try {
+            authUserDao.storeInfo(authUser, idToken, expiresTime);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return authUser;
     }
 }

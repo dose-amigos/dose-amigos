@@ -36,8 +36,12 @@ public class MySQLMedDao implements MedDao {
                 insertStatement.setString(5, med.getDoseUnit());
                 insertStatement.setInt(6, med.getTotalAmount());
                 insertStatement.setString(7, med.getDoseInstructions());
-                insertStatement.setDate(8, new Date(med.getFirstTaken().getTime()));
-                insertStatement.setDate(9, new Date(med.getLastTaken().getTime()));
+                insertStatement.setDate(8, med.getFirstTaken() != null
+                    ? new Date(med.getFirstTaken().getTime())
+                    : new Date(new java.util.Date().getTime()));
+                insertStatement.setDate(9, med.getLastTaken() != null
+                    ? new Date(med.getLastTaken().getTime())
+                    : null);
 
                 insertStatement.executeUpdate();
 

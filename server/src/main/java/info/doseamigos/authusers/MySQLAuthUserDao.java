@@ -1,9 +1,7 @@
 package info.doseamigos.authusers;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Date;
 
 import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
@@ -177,6 +175,75 @@ public class MySQLAuthUserDao implements AuthUserDao {
             conn.close();
         }
         return newAuthId;
+    }
+
+    @Override
+    public AuthUser getByIdToken(String idToken) throws SQLException {
+        try (Connection conn= MySQLConnection.create()) {
+            PreparedStatement getInfo = conn.prepareStatement(
+                "SELECT AUTHTOKENCACHE.idToken, " +
+                    "   AUTHTOKENCACHE.dateAdded, " +
+                    "   AUTHTOKENCACHE.duration, " +
+                    "   AUTHUSERS.authUserId, " +
+                    "   AUTHUSERS.EMAIL, " +
+                    "   AUTHUSERS.GOOGLEREFID, " +
+                    "   AUTHUSERS.AMIGOUSERID," +
+                    "   AMIGOUSERS.NAME, " +
+                    "   AMIGOUSERS.picUrl, " +
+                    "   AMIGOUSERS.LASTTIMEDOSETAKEN, " +
+                    "   AMIGOUSERS.NEXTTIMEDOSESCHEDULED " +
+                    "FROM AUTHTOKENCACHE " +
+                    "JOIN AUTHUSERS " +
+                    "  ON AUTHTOKENCACHE.authUserId = AUTHUSERS.authUserId " +
+                    "JOIN AMIGOUSERS " +
+                    "  ON AUTHUSERS.AMIGOUSERID =AMIGOUSERS.AMIGOUSERID " +
+                    "WHERE AUTHTOKENCACHE.idToken = ?;"
+            );
+            getInfo.setString(1, idToken);
+
+            ResultSet rs =getInfo.executeQuery();
+            if (!rs.next()) {
+                return null;
+            }
+            long duration = rs.getLong("duration");
+            Date dateAdded = rs.getTimestamp("dateAdded");
+            if (new Date().getTime() - dateAdded.getTime() > (duration*1000)) {
+                PreparedStatement deleteRow = conn.prepareStatement(
+                    "DELETE FROM AUTHTOKENCACHE WHERE idToken = ?"
+                );
+                deleteRow.setString(1, idToken);
+                deleteRow.executeUpdate();
+                return null;
+            }
+            return populateAuthUserFromRS(rs);
+        }
+    }
+
+    @Override
+    public void storeInfo(AuthUser user, String token, Integer durationInSeconds) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = MySQLConnection.create();
+            conn.setAutoCommit(false);
+
+            PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO AUTHTOKENCACHE(authUserId, idToken, dateAdded, duration) " +
+                    "VALUES (?, ?, ?, ?)"
+            );
+            statement.setLong(1, user.getAuthUserId());
+            statement.setString(2, token);
+            statement.setTimestamp(3, new Timestamp(new Date().getTime()));
+            statement.setInt(4, durationInSeconds);
+
+            statement.executeUpdate();
+
+            conn.commit();
+
+        } finally {
+            conn.rollback();
+            conn.close();
+        }
+
     }
 
     private AuthUser populateAuthUserFromRS(ResultSet resultSet) throws SQLException {
