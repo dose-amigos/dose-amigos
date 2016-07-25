@@ -226,6 +226,10 @@ public class MySQLAuthUserDao implements AuthUserDao {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
 
+            if (getByIdToken(token) != null) {
+                return;
+            }
+
             PreparedStatement statement = conn.prepareStatement(
                 "INSERT INTO AUTHTOKENCACHE(authUserId, idToken, dateAdded, duration) " +
                     "VALUES (?, ?, ?, ?)"
