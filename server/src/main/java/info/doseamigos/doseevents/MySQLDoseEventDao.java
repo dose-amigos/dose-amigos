@@ -1,10 +1,6 @@
 package info.doseamigos.doseevents;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,8 +21,9 @@ public class MySQLDoseEventDao implements DoseEventDao {
         try {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
-
-            toRet = createEvent(doseEvent, conn);
+            Long feedEventId = createFeedEvent(conn, doseEvent.getMed().getUser().getId(),
+                new Date(), doseEvent.getAction());
+            toRet = createEvent(doseEvent, feedEventId, conn);
 
             conn.commit();
 
@@ -39,7 +36,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
         return toRet;
     }
 
-    public Long createEvent(DoseEvent doseEvent, Connection conn) throws SQLException {
+    public Long createEvent(DoseEvent doseEvent, Long feedEventId, Connection conn) throws SQLException {
         Long toRet;PreparedStatement insertStatement = conn.prepareStatement(
             "INSERT INTO DOSEEVENTS(scheduledDoseTime, medId) " +
                 "VALUES (?, ?)"
@@ -57,6 +54,8 @@ public class MySQLDoseEventDao implements DoseEventDao {
         ResultSet rs = getIdStatement.executeQuery();
         rs.next();
         toRet = rs.getLong("doseEventId");
+
+        createFeedRel(conn, feedEventId, toRet);
         return toRet;
     }
 
@@ -167,8 +166,15 @@ public class MySQLDoseEventDao implements DoseEventDao {
         try {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
+            EventType action = doseEvents.get(0).getAction();
+            if (action == null) {
+                action = EventType.UNDONE;
+            }
+            Long feedEventId = createFeedEvent(conn, doseEvents.get(0).getMed().getUser().getId(),
+                new Date(), action);
             for (DoseEvent event : doseEvents) {
                 updateEventCall(conn, event);
+                createFeedRel(conn, feedEventId, event.getDoseEventId());
             }
             conn.commit();
 
@@ -186,8 +192,13 @@ public class MySQLDoseEventDao implements DoseEventDao {
                 "  SET action=?, actionDateTime=? " +
                 "WHERE doseEventId = ?"
         );
-        updateStatement.setString(1, event.getAction().name());
-        updateStatement.setTimestamp(2, new Timestamp(event.getActionDateTime().getTime()));
+        if (event.getAction() != null) {
+            updateStatement.setString(1, event.getAction().name());
+            updateStatement.setTimestamp(2, new Timestamp(event.getActionDateTime().getTime()));
+        } else {
+            updateStatement.setNull(1, Types.VARCHAR);
+            updateStatement.setNull(2, Types.TIMESTAMP);
+        }
         updateStatement.setLong(3, event.getDoseEventId());
 
         updateStatement.executeUpdate();
@@ -279,18 +290,32 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "JOIN AMIGOUSERS " +
                     "  ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
                     "WHERE DOSEEVENTS.scheduledDoseTime <= ? " +
-                    "  AND DOSEEVENTS.action IS NULL "
+                    "  AND DOSEEVENTS.action IS NULL " +
+                    "ORDER BY AMIGOUSERS.amigouserid"
             );
 
             statement.setTimestamp(1, new Timestamp(DateTime.now().minusHours(1).toDate().getTime()));
 
             //While going through them, mark them as MISSED in the DB.
             ResultSet rs = statement.executeQuery();
+            Long curUserId = null;
+            Long feedEventId = null;
             while (rs.next()) {
                 DoseEvent e = new DoseEventRowMapper().mapRow(rs);
+                Date curTime = new Date();
+                if (!e.getMed().getUser().getId().equals(curUserId)) {
+                    curUserId = e.getMed().getUser().getId();
+                    feedEventId = createFeedEvent(
+                        conn,
+                        curUserId,
+                        curTime,
+                        EventType.MISSED
+                    );
+                }
                 e.setAction(EventType.MISSED);
-                e.setActionDateTime(new Date());
+                e.setActionDateTime(curTime);
                 updateEventCall(conn, e);
+                createFeedRel(conn, feedEventId, e.getDoseEventId());
             }
 
             conn.commit();
@@ -301,14 +326,58 @@ public class MySQLDoseEventDao implements DoseEventDao {
         }
     }
 
+    private void createFeedRel(Connection conn, Long feedEventId, Long doseEventId) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(
+            "INSERT INTO FEED_DOSE_REL(feedEventId, doseEventId) " +
+                "VALUES (?, ?)"
+        );
+        statement.setLong(1, feedEventId);
+        statement.setLong(2, doseEventId);
+        statement.executeUpdate();
+    }
+
+    private Long createFeedEvent(
+        Connection conn,
+        Long curUserId,
+        Date curTime,
+        EventType eventType
+    ) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(
+            "INSERT INTO FEEDEVENTS (amigouserid, actionDateTime, action) " +
+                "VALUES (?, ?, ?)"
+        );
+        statement.setLong(1, curUserId);
+        statement.setTimestamp(2, new Timestamp(curTime.getTime()));
+        statement.setString(3, eventType.name());
+        statement.executeUpdate();
+
+        PreparedStatement getId = conn.prepareStatement(
+            "SELECT LAST_INSERT_ID() AS feedEventId"
+        );
+        ResultSet rs = getId.executeQuery();
+        rs.next();
+        return rs.getLong("feedEventId");
+    }
+
     @Override
     public void createMultiple(List<DoseEvent> eventsToAdd) throws SQLException {
         Connection conn = null;
         try {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
+            String event = null;
+            Long feedEventId = null;
             for (DoseEvent doseEvent : eventsToAdd) {
-                createEvent(doseEvent, conn);
+                if (!doseEvent.getAction().name().equals(event)) {
+                    event = doseEvent.getAction().name();
+                    feedEventId = createFeedEvent(
+                        conn,
+                        doseEvent.getMed().getUser().getId(),
+                        new Date(),
+                        doseEvent.getAction()
+                    );
+                }
+                createEvent(doseEvent, feedEventId, conn);
             }
             conn.commit();
         } finally {

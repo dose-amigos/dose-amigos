@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,11 @@ public class MySQLMedDao implements MedDao {
                         "VALUES (?,?,?,?,?,?,?,?,?,'Y')"
                 );
                 insertStatement.setLong(1, med.getUser().getId());
-                insertStatement.setLong(2, med.getRxcui());
+                if (med.getRxcui() != null) {
+                    insertStatement.setLong(2, med.getRxcui());
+                } else {
+                    insertStatement.setNull(2, Types.INTEGER);
+                }
                 insertStatement.setString(3, med.getName());
                 insertStatement.setInt(4, med.getDoseAmount());
                 insertStatement.setString(5, med.getDoseUnit());
