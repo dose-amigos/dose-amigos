@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -149,6 +150,7 @@ public class DefaultDoseEventService implements DoseEventService {
             if (!amigosForAuthUser.contains(de.getMed().getUser())) {
                 throw new RuntimeException("You cannot modify this dose event.");
             }
+            de.setActionDateTime(new Date(Instant.now().toEpochMilli()));
         }
 
         try {
