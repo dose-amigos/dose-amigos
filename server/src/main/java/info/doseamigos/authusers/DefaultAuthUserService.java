@@ -169,4 +169,13 @@ public class DefaultAuthUserService implements AuthUserService {
         }
         return authUser;
     }
+
+    @Override
+    public List<AuthUser> lookupByName(String name) {
+        try {
+            return authUserDao.lookupByName(name);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

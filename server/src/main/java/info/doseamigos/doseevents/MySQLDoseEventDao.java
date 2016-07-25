@@ -55,7 +55,9 @@ public class MySQLDoseEventDao implements DoseEventDao {
         rs.next();
         toRet = rs.getLong("doseEventId");
 
-        createFeedRel(conn, feedEventId, toRet);
+        if (feedEventId != null) {
+            createFeedRel(conn, feedEventId, toRet);
+        }
         return toRet;
     }
 
@@ -368,7 +370,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
             String event = null;
             Long feedEventId = null;
             for (DoseEvent doseEvent : eventsToAdd) {
-                if (!doseEvent.getAction().name().equals(event)) {
+                if (doseEvent.getAction() != null && !doseEvent.getAction().name().equals(event)) {
                     event = doseEvent.getAction().name();
                     feedEventId = createFeedEvent(
                         conn,
