@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.amigousers.UpdateAmigoDatesDAO;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import org.joda.time.DateTime;
@@ -15,6 +16,9 @@ import org.joda.time.Instant;
  * MySQL implementation of {@link DoseEventDao}.
  */
 public class MySQLDoseEventDao implements DoseEventDao {
+
+    private UpdateAmigoDatesDAO updateAmigoDatesDAO = new UpdateAmigoDatesDAO();
+
     @Override
     public Long create(DoseEvent doseEvent) throws SQLException {
         Connection conn = null;
@@ -232,7 +236,10 @@ public class MySQLDoseEventDao implements DoseEventDao {
             for (DoseEvent event : doseEvents) {
                 updateEventCall(conn, event);
                 createFeedRel(conn, feedEventId, event.getDoseEventId());
+                event.getMed().setUser(updateAmigoDatesDAO.updateAmigo(conn, doseEvents.get(0).getMed().getUser()));
             }
+
+
             conn.commit();
 
         } finally {
@@ -373,6 +380,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                 e.setActionDateTime(curTime);
                 updateEventCall(conn, e);
                 createFeedRel(conn, feedEventId, e.getDoseEventId());
+                updateAmigoDatesDAO.updateAmigo(conn, e.getMed().getUser());
             }
 
             conn.commit();
