@@ -1,7 +1,10 @@
 package info.doseamigos.doseseries;
 
+import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.authusers.AuthUser;
 import info.doseamigos.meds.Med;
+
+import java.util.List;
 
 /**
  * Business Service for handling DoseSeries logic..
@@ -29,4 +32,12 @@ public interface DoseSeriesService {
      * @return The DoseSeries
      */
     DoseSeries getForMed(Med med);
+
+    /**
+     * Gets all dose series for a given user.
+     * @param authUser The auth user to validate against.
+     * @param user The user to get series for
+     * @return The dose series for that user.
+     */
+    List<DoseSeries> getSeriesForUser(AuthUser authUser, AmigoUser user);
 }

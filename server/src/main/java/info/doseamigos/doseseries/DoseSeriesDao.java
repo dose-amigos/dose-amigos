@@ -1,8 +1,10 @@
 package info.doseamigos.doseseries;
 
+import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.meds.Med;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * DAO for handling saving and grabbing DoseSeries for Meds.
@@ -29,4 +31,11 @@ public interface DoseSeriesDao {
      * @return The series with the given id.
      */
     DoseSeries getForMed(Med med);
+
+    /**
+     * Gets a list of dose series for a specific user.
+     * @param amigoUser The user to get dose series for.
+     * @return The Dose Series listing
+     */
+    List<DoseSeries> getSeriesForUser(AmigoUser amigoUser);
 }

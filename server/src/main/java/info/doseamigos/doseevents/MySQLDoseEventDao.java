@@ -9,6 +9,7 @@ import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 
 /**
  * MySQL implementation of {@link DoseEventDao}.
@@ -148,8 +149,62 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "ORDER BY DOSEEVENTS.scheduledDoseTime ASC"
             );
             DateTime tomorrow = DateTime.now().plusDays(1);
-            statement.setTimestamp(1, new Timestamp(tomorrow.toDate().getTime()));
+            statement.setTimestamp(1, new Timestamp(tomorrow.getMillis()));
             statement.setLong(2, amigoUser.getId());
+
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                toRet.add(new DoseEventRowMapper().mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return toRet;
+    }
+
+    @Override
+    public List<DoseEvent> getEventsForUserWeekly(AmigoUser amigoUser) {
+        List<DoseEvent> toRet = new ArrayList<>();
+
+        try (Connection conn = MySQLConnection.create()) {
+            PreparedStatement statement = conn.prepareStatement(
+                "SELECT DOSEEVENTS.doseEventId, " +
+                    "   DOSEEVENTS.scheduledDoseTime, " +
+                    "   DOSEEVENTS.actionDateTime, " +
+                    "   DOSEEVENTS.action, " +
+                    "   MEDS.medId," +
+                    "   MEDS.rxcui," +
+                    "   MEDS.name AS medName," +
+                    "   MEDS.doseamount," +
+                    "   MEDS.doseUnit," +
+                    "   MEDS.totalAmount," +
+                    "   MEDS.doseInstructions," +
+                    "   MEDS.firstTaken," +
+                    "   MEDS.lastDoseTaken," +
+                    "   MEDS.nextScheduledDose," +
+                    "   MEDS.active," +
+                    "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
+                    "   AMIGOUSERS.lastTimeDoseTaken," +
+                    "   AMIGOUSERS.nextTimeDoseScheduled," +
+                    "   AMIGOUSERS.name AS amigoName " +
+                    "FROM DOSEEVENTS " +
+                    "JOIN MEDS " +
+                    "  ON DOSEEVENTS.medId = MEDS.medId " +
+                    "JOIN AMIGOUSERS " +
+                    "  ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
+                    "WHERE DOSEEVENTS.scheduledDoseTime < ? " +
+                    "  AND DOSEEVENTS.scheduledDoseTime > ? " +
+                    "  AND AMIGOUSERS.amigouserid = ? " +
+                    "  AND DOSEEVENTS.action IS NULL " +
+                    "ORDER BY DOSEEVENTS.scheduledDoseTime ASC"
+            );
+            DateTime now = DateTime.now();
+            DateTime weekFromToday = now.plusDays(7);
+            statement.setTimestamp(1, new Timestamp(weekFromToday.getMillis()));
+            statement.setTimestamp(2, new Timestamp(now.getMillis()));
+            statement.setLong(3, amigoUser.getId());
 
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {

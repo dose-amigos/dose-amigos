@@ -150,4 +150,35 @@ public class DoseEventWebService {
     ) throws IOException {
         service.generateDoseEventsForAllUsers();
     }
+
+    public void getEventsWeekly(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+        ClientRequestObject<Object> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                Object.class
+            )
+        );
+
+        logger.log("Calling updateDoseEvents");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        List<DoseEvent> events = service.getWeeklyEventsForAuthUser(
+            clientRequestObject.getSessionUser()
+        );
+
+        objectMapper.writeValue(outputStream, events);
+    }
 }
