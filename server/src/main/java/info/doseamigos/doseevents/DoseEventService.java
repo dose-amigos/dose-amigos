@@ -59,6 +59,13 @@ public interface DoseEventService {
     List<DoseEvent> getEventsForUserToday(AuthUser authUser, AmigoUser amigoUser);
 
     /**
+     * Gets a list of events for the auth user for upcoming events throughout the week.
+     * @param authUser The AuthUser making the request
+     * @return A list of DoseEvents for the specific user.
+     */
+    List<DoseEvent> getWeeklyEventsForAuthUser(AuthUser authUser);
+
+    /**
      * Updates a list of DoseEvents with the updated Action and actionDateTime.
      * @param authUser The AuthUser making the request, for validation purposes.
      * @param doseEvents The list of dose events to save.

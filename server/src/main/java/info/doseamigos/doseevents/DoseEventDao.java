@@ -35,6 +35,13 @@ public interface DoseEventDao {
     List<DoseEvent> getEventsForUserToday(AmigoUser amigoUser);
 
     /**
+     * Gets a list of dose events for the upcoming week that the user has for scheduling reasons.
+     * @param amigoUser The amigo to get the events for
+     * @return The upcoming week's doses to schedule.
+     */
+    List<DoseEvent> getEventsForUserWeekly(AmigoUser amigoUser);
+
+    /**
      * Updates the list of dose events passed in with the action/actionDateTime.
      * @param doseEvents The events to update.
      */

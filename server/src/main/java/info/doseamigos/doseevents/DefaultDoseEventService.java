@@ -143,6 +143,11 @@ public class DefaultDoseEventService implements DoseEventService {
     }
 
     @Override
+    public List<DoseEvent> getWeeklyEventsForAuthUser(AuthUser authUser) {
+        return doseEventDao.getEventsForUserWeekly(authUser.getAmigoUser());
+    }
+
+    @Override
     public List<DoseEvent> updateDoseEvents(AuthUser authUser, List<DoseEvent> doseEvents) {
         List<AmigoUser> amigosForAuthUser = amigoUserService.getAmigosForAuthUser(authUser);
         amigosForAuthUser.add(authUser.getAmigoUser());
