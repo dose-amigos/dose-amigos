@@ -16,6 +16,7 @@ import info.doseamigos.meds.MedService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * WebService to contain StreamHandlers for the Amazon Lambda functions related to DoseSeries.
@@ -73,5 +74,34 @@ public class DoseSeriesWebService {
             clientRequestObject.getSessionUser(), clientRequestObject.getBody());
 
         objectMapper.writeValue(outputStream, savedSeries);
+    }
+
+    public void getDoseSeriesForUser(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+
+        ClientRequestObject<Object> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                Object.class));
+
+        logger.log("Calling create/update DoseSeries");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        List<DoseSeries> allSeries = doseSeriesService.getSeriesForUser(clientRequestObject.getSessionUser(),
+            clientRequestObject.getSessionUser().getAmigoUser());
+
+        objectMapper.writeValue(outputStream, allSeries);
     }
 }

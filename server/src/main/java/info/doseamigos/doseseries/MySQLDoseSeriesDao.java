@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import info.doseamigos.meds.MedRowMapper;
@@ -198,5 +200,80 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
         }
 
         return series;
+    }
+
+    @Override
+    public List<DoseSeries> getSeriesForUser(AmigoUser amigoUser) {
+        List<DoseSeries> allSeries = new ArrayList<>();
+        try (Connection conn = MySQLConnection.create()) {
+            PreparedStatement statement = conn.prepareStatement(
+                "SELECT DOSESERIES.seriesId, " +
+                    "   MEDS.medId," +
+                    "   MEDS.rxcui," +
+                    "   MEDS.name AS medName," +
+                    "   MEDS.doseamount," +
+                    "   MEDS.doseUnit," +
+                    "   MEDS.totalAmount," +
+                    "   MEDS.doseInstructions," +
+                    "   MEDS.firstTaken," +
+                    "   MEDS.lastDoseTaken," +
+                    "   MEDS.nextScheduledDose," +
+                    "   MEDS.active," +
+                    "   AMIGOUSERS.amigouserid," +
+                    "   AMIGOUSERS.picUrl, " +
+                    "   AMIGOUSERS.lastTimeDoseTaken," +
+                    "   AMIGOUSERS.nextTimeDoseScheduled," +
+                    "   AMIGOUSERS.name AS amigoName" +
+                    " FROM DOSESERIES " +
+                    " JOIN MEDS " +
+                    "   ON DOSESERIES.medId = MEDS.medId " +
+                    " JOIN AMIGOUSERS " +
+                    "   ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
+                    "WHERE AMIGOUSERS.amigouserid = ? " +
+                    "ORDER BY DOSESERIES.seriesId ASC"
+            );
+            statement.setLong(1, amigoUser.getId());
+
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                DoseSeries series = new DoseSeries();
+                series.setSeriesId(rs.getLong("seriesId"));
+                series.setMed(new MedRowMapper().mapRow(rs));
+                updateDaysAndTimes(conn, series);
+                allSeries.add(series);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return allSeries;
+    }
+
+    private void updateDaysAndTimes(Connection conn, DoseSeries series) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(
+            "SELECT DOSESERIESITEM.seriesId," +
+                "   DOSESERIESITEM.seriesDay, " +
+                "   DOSESERIESITEM.seriesTime " +
+                "FROM DOSESERIESITEM " +
+                "WHERE seriesId = ?"
+        );
+
+        statement.setLong(1, series.getSeriesId());
+
+        ResultSet rs = statement.executeQuery();
+        series.setDaysOfWeek(new ArrayList<Integer>());
+        series.setTimesOfDay(new ArrayList<Date>());
+        while (rs.next()) {
+            Integer day = rs.getInt("seriesDay");
+            if (!series.getDaysOfWeek().contains(day)) {
+                series.getDaysOfWeek().add(day);
+            }
+            Date time = rs.getTimestamp("seriesTime");
+            if (!series.getTimesOfDay().contains(time)) {
+                series.getTimesOfDay().add(time);
+            }
+        }
     }
 }

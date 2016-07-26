@@ -10,6 +10,7 @@ import info.doseamigos.meds.MedService;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.sql.SQLException;
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -69,5 +70,12 @@ public class DefaultDoseSeriesService implements DoseSeriesService {
     @Override
     public DoseSeries getForMed(Med med) {
         return doseSeriesDao.getForMed(med);
+    }
+
+    @Override
+    public List<DoseSeries> getSeriesForUser(AuthUser authUser, AmigoUser user) {
+        //verify the user can add a med for this amigo user
+        amigoUserService.validateAmigoChange(authUser, user);
+        return doseSeriesDao.getSeriesForUser(user);
     }
 }
