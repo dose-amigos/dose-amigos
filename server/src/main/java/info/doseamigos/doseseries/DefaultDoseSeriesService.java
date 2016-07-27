@@ -51,7 +51,7 @@ public class DefaultDoseSeriesService implements DoseSeriesService {
             Med savedMed = medService.saveMed(user, series.getMed());
             series.setMed(savedMed);
             Long id = doseSeriesDao.save(series);
-            DoseSeries newSeries = getById(id);
+            DoseSeries newSeries = getById(user, id);
 
             //Add a weekly amount of events by default.
             doseEventService.addWeeklySeriesForDoseSeries(newSeries);
@@ -63,8 +63,60 @@ public class DefaultDoseSeriesService implements DoseSeriesService {
     }
 
     @Override
-    public DoseSeries getById(Long id) {
-        return doseSeriesDao.getById(id);
+    public DoseSeries saveSeries(AuthUser user, DoseSeries series) {
+        AmigoUser amigoToCheck = series.getMed().getUser();
+        //If the new med has no amigo associated with it, it's the auth user's amigo.
+        if (amigoToCheck == null) {
+            amigoToCheck = user.getAmigoUser();
+        }
+        //verify the user can add a med for this amigo user
+        amigoUserService.validateAmigoChange(user, amigoToCheck);
+
+        try {
+            Med updatedMed = medService.saveMed(user, series.getMed());
+            series.setMed(updatedMed);
+            Long updatedId = doseSeriesDao.save(series);
+            DoseSeries updatedSeries = doseSeriesDao.getById(updatedId);
+            doseEventService.addWeeklySeriesForDoseSeries(updatedSeries);
+
+            return updatedSeries;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public DoseSeries deleteSeries(AuthUser user, Long seriesId) {
+        DoseSeries series = getById(user, seriesId);
+        AmigoUser amigoToCheck = series.getMed().getUser();
+        //If the new med has no amigo associated with it, it's the auth user's amigo.
+        if (amigoToCheck == null) {
+            amigoToCheck = user.getAmigoUser();
+        }
+        //verify the user can add a med for this amigo user
+        amigoUserService.validateAmigoChange(user, amigoToCheck);
+
+        try {
+            doseSeriesDao.delete(series);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return series;
+    }
+
+    @Override
+    public DoseSeries getById(AuthUser user, Long id) {
+        DoseSeries series = doseSeriesDao.getById(id);
+
+        AmigoUser amigoToCheck = series.getMed().getUser();
+        //If the new med has no amigo associated with it, it's the auth user's amigo.
+        if (amigoToCheck == null) {
+            amigoToCheck = user.getAmigoUser();
+        }
+        //verify the user can add a med for this amigo user
+        amigoUserService.validateAmigoChange(user, amigoToCheck);
+
+        return series;
     }
 
     @Override

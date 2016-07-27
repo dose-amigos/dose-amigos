@@ -23,8 +23,18 @@ public class MySQLMedDao implements MedDao {
             conn = MySQLConnection.create();
             conn.setAutoCommit(false);
             if (med.getMedId() != null) {
-                throw new RuntimeException("Not Supported Yet");
-                //TODO Actually do this.
+                PreparedStatement updateStatement = conn.prepareStatement(
+                    "UPDATE MEDS set name = ?, doseamount = ?, doseUnit = ?, totalAmount = ? " +
+                        "WHERE medId = ?"
+                );
+                updateStatement.setString(1, med.getName());
+                updateStatement.setInt(2, med.getDoseAmount());
+                updateStatement.setString(3, med.getDoseUnit());
+                updateStatement.setInt(4, med.getTotalAmount());
+                updateStatement.setLong(5, med.getMedId());
+                updateStatement.executeUpdate();
+
+                toReturn = med.getMedId();
             } else {
                 PreparedStatement insertStatement = conn.prepareStatement(
                     "INSERT INTO MEDS(amigouserid, rxcui, name, doseamount, doseUnit, totalAmount, doseInstructions, firstTaken, lastDoseTaken, active) " +
@@ -57,8 +67,8 @@ public class MySQLMedDao implements MedDao {
                 ResultSet rs = getNewId.executeQuery();
                 rs.next();
                 toReturn = rs.getLong("newMedId");
-                conn.commit();
             }
+            conn.commit();
         } catch (SQLException e) {
             throw e;
         } finally {

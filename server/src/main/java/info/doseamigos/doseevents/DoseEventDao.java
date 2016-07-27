@@ -57,6 +57,7 @@ public interface DoseEventDao {
     /**
      * Creates all events passed in in the same connection.
      * @param eventsToAdd The events to add.
+     * @param user The user getting new events, used to update them in the DB.
      */
-    void createMultiple(List<DoseEvent> eventsToAdd) throws SQLException;
+    void createMultiple(List<DoseEvent> eventsToAdd, AmigoUser user) throws SQLException;
 }

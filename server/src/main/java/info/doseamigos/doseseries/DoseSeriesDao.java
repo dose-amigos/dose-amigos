@@ -13,10 +13,17 @@ public interface DoseSeriesDao {
 
     /**
      * Saves a doseseries to the DB.
-     * @param series The series to save
+     * @param series The series to save.  If id is null, it creates a new series.
      * @return The id of the series saved.
      */
     Long save(DoseSeries series) throws SQLException;
+
+    /**
+     * Deletes the dose series from the DB.
+     * @param series
+     * @throws SQLException
+     */
+    void delete(DoseSeries series) throws SQLException;
 
     /**
      * Gets a series by its id.
