@@ -19,12 +19,16 @@ public interface DoseSeriesService {
      */
     DoseSeries addSeries(AuthUser authUser, DoseSeries series);
 
+    DoseSeries saveSeries(AuthUser authUser, DoseSeries series);
+
+    DoseSeries deleteSeries(AuthUser authUser, Long seriesId);
+
     /**
      * Gets a DoseSeries by its Id.
      * @param id The id to look up.
      * @return The series associated with that id.
      */
-    DoseSeries getById(Long id);
+    DoseSeries getById(AuthUser user, Long id);
 
     /**
      * Gets a DoseSeries for a given med.

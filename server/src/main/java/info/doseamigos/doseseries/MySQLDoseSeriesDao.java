@@ -1,9 +1,7 @@
 package info.doseamigos.doseseries;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,13 +44,8 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                 seriesId = seriesIdRS.getLong("seriesId");
 
             }
+            deleteDoseSeriesItems(conn, seriesId);
 
-            //Now delete all existing items with the series id
-            PreparedStatement deleteAllExistingItems = conn.prepareStatement(
-                "DELETE FROM DOSESERIESITEM WHERE seriesId = ?"
-            );
-            deleteAllExistingItems.setLong(1, seriesId);
-            deleteAllExistingItems.executeUpdate();
 
             //Now add each item.
             for (Integer day : series.getDaysOfWeek()) {
@@ -68,7 +61,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     addItem.executeUpdate();
                 }
             }
-
+            deleteFutureDoseEvents(conn, seriesId);
             updateAmigoDatesDAO.updateAmigo(conn, series.getMed().getUser());
             conn.commit();
             toRet = seriesId;
@@ -81,6 +74,58 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
         }
 
         return toRet;
+    }
+
+    public void deleteDoseSeriesItems(Connection conn, Long seriesId) throws SQLException {
+        //Now delete all existing items with the series id
+        PreparedStatement deleteAllExistingItems = conn.prepareStatement(
+            "DELETE FROM DOSESERIESITEM WHERE seriesId = ?"
+        );
+        deleteAllExistingItems.setLong(1, seriesId);
+        deleteAllExistingItems.executeUpdate();
+    }
+
+    private void deleteFutureDoseEvents(Connection conn, Long seriesId) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(
+            "DELETE FROM DOSEEVENTS WHERE medId in ( " +
+                "SELECT medId FROM DOSESERIES WHERE seriesId = ?" +
+                ") " +
+                " AND DOSEEVENTS.action IS NULL " +
+                " AND DOSEEVENTS.scheduledDoseTime > ?"
+        );
+
+        statement.setLong(1, seriesId);
+        statement.setTimestamp(2, new Timestamp(Instant.now().toEpochMilli()));
+        statement.executeUpdate();
+    }
+
+
+    @Override
+    public void delete(DoseSeries series) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = MySQLConnection.create();
+            conn.setAutoCommit(false);
+
+            //First, delete all future dose events
+            deleteFutureDoseEvents(conn, series.getSeriesId());
+
+            //Second, delete all DoseSeriesItems
+            deleteDoseSeriesItems(conn, series.getSeriesId());
+
+            //Lastly, mark the med as inactive
+            PreparedStatement statement = conn.prepareStatement(
+                "UPDATE MEDS SET active = 'N' WHERE medId = ?"
+            );
+            statement.setLong(1, series.getMed().getMedId());
+            statement.executeUpdate();
+
+            updateAmigoDatesDAO.updateAmigo(conn, series.getMed().getUser());
+            conn.commit();
+        } finally {
+            conn.rollback();
+            conn.close();
+        }
     }
 
     @Override
@@ -235,6 +280,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     " JOIN AMIGOUSERS " +
                     "   ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
                     "WHERE AMIGOUSERS.amigouserid = ? " +
+                    "  AND MEDS.active = 'Y'" +
                     "ORDER BY DOSESERIES.seriesId ASC"
             );
             statement.setLong(1, amigoUser.getId());

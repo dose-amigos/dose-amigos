@@ -425,7 +425,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
     }
 
     @Override
-    public void createMultiple(List<DoseEvent> eventsToAdd) throws SQLException {
+    public void createMultiple(List<DoseEvent> eventsToAdd, AmigoUser user) throws SQLException {
         Connection conn = null;
         try {
             conn = MySQLConnection.create();

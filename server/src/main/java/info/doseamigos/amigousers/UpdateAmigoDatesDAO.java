@@ -34,7 +34,8 @@ public class UpdateAmigoDatesDAO {
                 "JOIN MEDS " +
                 "ON DOSEEVENTS.medId = MEDS.medId " +
                 "WHERE MEDS.amigouserid = ? " +
-                "  AND action IS NULL " +
+                "  AND DOSEEVENTS.action IS NULL " +
+                "  AND MEDS.active IS 'Y' " +
                 "ORDER BY DOSEEVENTS.actionDateTime ASC "
         );
         getNextDoseStatement.setLong(1, amigoUser.getId());

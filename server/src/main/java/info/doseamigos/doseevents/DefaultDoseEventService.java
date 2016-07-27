@@ -84,7 +84,7 @@ public class DefaultDoseEventService implements DoseEventService {
                     }
                 }
                 try {
-                    doseEventDao.createMultiple(eventsToAdd);
+                    doseEventDao.createMultiple(eventsToAdd, amigoUser);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -192,7 +192,7 @@ public class DefaultDoseEventService implements DoseEventService {
     public void addWeeklySeriesForDoseSeries(DoseSeries newSeries) {
         List<DoseEvent> eventsToAdd = generateWeekEventsForSeries(newSeries);
         try {
-            doseEventDao.createMultiple(eventsToAdd);
+            doseEventDao.createMultiple(eventsToAdd, newSeries.getMed().getUser());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

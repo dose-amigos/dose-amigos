@@ -41,6 +41,35 @@ public class DoseSeriesWebService {
         doseSeriesService = injector.getInstance(DoseSeriesService.class);
     }
 
+    public void getDoseSeriesById(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+
+        ClientRequestObject<Long> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                Long.class));
+
+        logger.log("Calling create/update DoseSeries");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        DoseSeries savedSeries = doseSeriesService.getById(
+            clientRequestObject.getSessionUser(), clientRequestObject.getBody());
+
+        objectMapper.writeValue(outputStream, savedSeries);
+    }
+
     /**
      * Handler for AddDoseSeries Lambda calls.
      * @param inputStream
@@ -71,6 +100,76 @@ public class DoseSeriesWebService {
         logger.log("User: " + clientRequestObject.getSessionUser());
 
         DoseSeries savedSeries = doseSeriesService.addSeries(
+            clientRequestObject.getSessionUser(), clientRequestObject.getBody());
+
+        objectMapper.writeValue(outputStream, savedSeries);
+    }
+
+    /**
+     * Handler for UpdateDoseSeries Lambda calls.
+     * @param inputStream
+     * @param outputStream
+     * @param context
+     */
+    public void updateDoseSeries(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+
+        ClientRequestObject<DoseSeries> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                DoseSeries.class));
+
+        logger.log("Calling create/update DoseSeries");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        DoseSeries savedSeries = doseSeriesService.saveSeries(
+            clientRequestObject.getSessionUser(), clientRequestObject.getBody());
+
+        objectMapper.writeValue(outputStream, savedSeries);
+    }
+
+    /**
+     * Handler for DeleteDoseSeries Lambda calls.
+     * @param inputStream
+     * @param outputStream
+     * @param context
+     */
+    public void deleteDoseSeries(
+        InputStream inputStream,
+        OutputStream outputStream,
+        Context context
+    ) throws IOException {
+        LambdaLogger logger = context.getLogger();
+
+        //Logging purposes
+        String streamContents = IOUtils.toString(inputStream);
+        logger.log("Stream Contents: " + streamContents);
+
+
+        ClientRequestObject<Long> clientRequestObject = objectMapper.readValue(
+            streamContents,
+            objectMapper.getTypeFactory().constructParametrizedType(
+                ClientRequestObject.class,
+                ClientRequestObject.class,
+                Long.class));
+
+        logger.log("Calling create/update DoseSeries");
+        logger.log("Input: " + clientRequestObject.getQueryParams());
+        logger.log("User: " + clientRequestObject.getSessionUser());
+
+        DoseSeries savedSeries = doseSeriesService.deleteSeries(
             clientRequestObject.getSessionUser(), clientRequestObject.getBody());
 
         objectMapper.writeValue(outputStream, savedSeries);
