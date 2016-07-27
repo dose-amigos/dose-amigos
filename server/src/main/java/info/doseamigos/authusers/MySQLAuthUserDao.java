@@ -290,6 +290,8 @@ public class MySQLAuthUserDao implements AuthUserDao {
         amigoUser.setName(resultSet.getString("NAME"));
         amigoUser.setId(resultSet.getLong("AMIGOUSERID"));
         amigoUser.setPicture(resultSet.getString("picUrl"));
+        amigoUser.setNextTimeDoseScheduled(resultSet.getTimestamp("NEXTTIMEDOSESCHEDULED"));
+        amigoUser.setLastTimeDoseTaken(resultSet.getTimestamp("LASTTIMEDOSETAKEN"));
         AuthUser authUser = new AuthUser();
         authUser.setAmigoUser(amigoUser);
         authUser.setEmail(resultSet.getString("EMAIL"));

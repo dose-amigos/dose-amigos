@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import info.doseamigos.amigousers.AmigoUser;
+import info.doseamigos.amigousers.UpdateAmigoDatesDAO;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import info.doseamigos.meds.MedRowMapper;
@@ -17,6 +18,8 @@ import info.doseamigos.meds.MedRowMapper;
  * MySQL implementation for {@link DoseSeriesDao}.
  */
 public class MySQLDoseSeriesDao implements DoseSeriesDao {
+
+    private UpdateAmigoDatesDAO updateAmigoDatesDAO = new UpdateAmigoDatesDAO();
 
     @Override
     public Long save(DoseSeries series) throws SQLException {
@@ -65,6 +68,8 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     addItem.executeUpdate();
                 }
             }
+
+            updateAmigoDatesDAO.updateAmigo(conn, series.getMed().getUser());
             conn.commit();
             toRet = seriesId;
 

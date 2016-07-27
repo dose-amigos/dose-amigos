@@ -32,7 +32,7 @@ public class AmigoUserTest {
         user.setName(null);
     }
 
-    @Test
+    @Test(enabled = false)
     public void testEquals() throws Exception {
         AmigoUser user1 = new AmigoUser();
         user1.setId(1L);

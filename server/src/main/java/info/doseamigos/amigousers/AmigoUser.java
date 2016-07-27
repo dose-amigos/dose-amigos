@@ -71,9 +71,17 @@ public class AmigoUser {
         this.picture = picture;
     }
 
+    /**
+     * Overriding to just check the id for sanity's sake.
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
+        if (o instanceof AmigoUser) {
+            return this.getId().equals(((AmigoUser) o).getId());
+        }
+        return false;
     }
 
     @Override
