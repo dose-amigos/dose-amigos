@@ -11,6 +11,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.Joiner;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import info.doseamigos.amigousers.AmigoUser;
 import info.doseamigos.amigousers.AmigoUserGuiceModule;
 import info.doseamigos.authusers.AuthUser;
 import info.doseamigos.authusers.AuthUserGuiceModule;
@@ -22,6 +23,9 @@ import info.doseamigos.doseevents.EventType;
 import info.doseamigos.doseseries.DoseSeries;
 import info.doseamigos.doseseries.DoseSeriesGuiceModule;
 import info.doseamigos.doseseries.DoseSeriesService;
+import info.doseamigos.feedevents.FeedEvent;
+import info.doseamigos.feedevents.FeedEventGuiceModule;
+import info.doseamigos.feedevents.FeedEventService;
 import info.doseamigos.meds.Med;
 import info.doseamigos.meds.MedGuiceModule;
 import info.doseamigos.meds.MedService;
@@ -37,8 +41,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.DayOfWeek;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 
@@ -51,7 +58,7 @@ public class DoseAmigosSpeechlet implements Speechlet {
     private AuthUserService authUserService;
     private DoseEventService doseEventService;
     private DoseSeriesService doseSeriesService;
-    private ShareRequestService shareRequestService;
+    private FeedEventService feedEventService;
 
     private AuthUser sessionUser;
 
@@ -63,12 +70,13 @@ public class DoseAmigosSpeechlet implements Speechlet {
             new DoseSeriesGuiceModule(),
             new AmigoUserGuiceModule(),
             new MedGuiceModule(),
-            new AuthUserGuiceModule()
+            new AuthUserGuiceModule(),
+            new FeedEventGuiceModule()
         );
         authUserService = injector.getInstance(AuthUserService.class);
         doseEventService = injector.getInstance(DoseEventService.class);
         doseSeriesService = injector.getInstance(DoseSeriesService.class);
-        shareRequestService = injector.getInstance(ShareRequestService.class);
+        feedEventService = injector.getInstance(FeedEventService.class);
         sessionUser = getSessionUser(session);
     }
 
@@ -131,78 +139,88 @@ public class DoseAmigosSpeechlet implements Speechlet {
             case "AddMedTimes":
                 log.info("Getting med times and saving to DB");
                 return addMed_Times(session, intent);
-            case "AddAmigo":
-                log.info("Initializing Adding an Amigo");
-                return addAmigo_Init();
-            case "AddAmigoLookup":
-                log.info("Looking up an amigo by name");
-                return addAmigo_Name(session, intent, 0);
-            case "AddAmigoConfirmation":
-                log.info("Confirming amigo.");
-                return addAmigo_Confirmation(session, intent);
+            case "AmigoUpdate":
+                log.info("Getting latest events on amigo.");
+                return amigoUpdate();
 
             default:
                 throw new RuntimeException("Invalid Intent Name found.");
         }
     }
 
-    private SpeechletResponse addAmigo_Init() {
-        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-        SimpleCard card = new SimpleCard();
-        card.setTitle("Adding Amigo");
-        card.setContent("What is your amigo's name?");
-
-        outputSpeech.setText("What is your amigo's name?");
-
-        Reprompt reprompt = new Reprompt();
-        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
-        repromptSpeech.setText("Please tell me your amigo's name?");
-
-        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
-    }
-
-
-    private SpeechletResponse addAmigo_Name(Session session, Intent intent, int index) {
-        String name = intent.getSlot("amigoName").getValue();
-        List<AuthUser> matches = authUserService.lookupByName(name);
-        session.setAttribute("index", index);
-        session.setAttribute("email", matches.get(index).getEmail());
-
-        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-        SimpleCard card = new SimpleCard();
-        card.setTitle("Adding Amigo");
-        card.setContent("Is your amigo's email address <say-as interpret-as=" + matches.get(0).getEmail() + ">hello</say-as>.");
-
-        outputSpeech.setText("Is your amigo's email address <say-as interpret-as=\"" + matches.get(0).getEmail() + "\">hello</say-as>.");
-
-        Reprompt reprompt = new Reprompt();
-        PlainTextOutputSpeech repromptSpeech = new PlainTextOutputSpeech();
-        repromptSpeech.setText("Is your amigo's email address <say-as interpret-as=\"" + matches.get(0).getEmail() + "\">hello</say-as>.");
-
-        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
-    }
-
-    private SpeechletResponse addAmigo_Confirmation(Session session, Intent intent) {
-        String name = intent.getSlot("confirm").getValue();
-        Integer index = (Integer) session.getAttribute("index");
-        String email = (String) session.getAttribute("email");
-        if (name.equalsIgnoreCase("YES")) {
-            ShareRequest shareRequest = new ShareRequest();
-            shareRequest.setSharedAmigo(sessionUser.getAmigoUser());
-            shareRequest.setTargetUserEmail(email);
-            shareRequestService.addNewShareRequest(sessionUser, shareRequest);
-
-            PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-            SimpleCard card = new SimpleCard();
-            card.setTitle("Adding Amigo");
-            card.setContent("We have sent a share request.");
-
-            outputSpeech.setText("We have sent a share request.");
-
-            return SpeechletResponse.newTellResponse(outputSpeech, card);
-        } else {
-            return addAmigo_Name(session, intent, ++index);
+    private SpeechletResponse amigoUpdate() {
+        Map<AmigoUser, FeedEvent> eventMap = feedEventService.getLatestestEventsForEcho(sessionUser);
+        List<AmigoUser> missedDoseAmigos = new ArrayList<>();
+        List<AmigoUser> skippedDoseAmigos = new ArrayList<>();
+        for (Map.Entry<AmigoUser, FeedEvent> eventEntry : eventMap.entrySet()) {
+            if (eventEntry.getValue().getAction() == EventType.MISSED) {
+                missedDoseAmigos.add(eventEntry.getKey());
+            } else if (eventEntry.getValue().getAction() == EventType.SKIPPED) {
+                skippedDoseAmigos.add(eventEntry.getKey());
+            }
         }
+        StringBuilder speechSB = new StringBuilder();
+        speechSB.append("You have ");
+        if (missedDoseAmigos.isEmpty() && skippedDoseAmigos.isEmpty()) {
+            speechSB.append(" no amigos missing any of their latest doses.");
+        }
+        if (!missedDoseAmigos.isEmpty()) {
+            speechSB.append(missedDoseAmigos.size());
+            if (missedDoseAmigos.size() == 1) {
+                speechSB.append(" amigo");
+            } else {
+                speechSB.append(" amigos");
+            }
+            speechSB.append(" that missed a dose,");
+            if (!skippedDoseAmigos.isEmpty()) {
+                speechSB.append(" and ");
+            }
+        }
+        if (!skippedDoseAmigos.isEmpty()) {
+            speechSB.append(skippedDoseAmigos.size());
+            if (skippedDoseAmigos.size() == 1) {
+                speechSB.append(" amigo");
+            } else {
+                speechSB.append(" amigos");
+            }
+            speechSB.append(" that skipped a dose ");
+        }
+
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        SimpleCard card = new SimpleCard();
+        outputSpeech.setText(speechSB.toString());
+        card.setTitle("Amigo Status");
+        StringBuilder cardSB = new StringBuilder();
+        if (missedDoseAmigos.isEmpty() && skippedDoseAmigos.isEmpty()) {
+            cardSB.append(speechSB.toString());
+        } else {
+            if (!missedDoseAmigos.isEmpty()) {
+                cardSB.append("The following amigos has missed a medication: ");
+                cardSB.append(com.google.common.base.Joiner.on(", ").join(missedDoseAmigos.stream().map(
+                    new Function<AmigoUser, String>() {
+                        @Override
+                        public String apply(AmigoUser amigoUser) {
+                            return amigoUser.getName();
+                        }
+                    }).collect(Collectors.toList())));
+                if (!skippedDoseAmigos.isEmpty()) {
+                    cardSB.append(". ");
+                }
+            }
+            if (!skippedDoseAmigos.isEmpty()) {
+                cardSB.append("The following amigos has skipped a medication: ");
+                cardSB.append(com.google.common.base.Joiner.on(", ").join(skippedDoseAmigos.stream().map(
+                    new Function<AmigoUser, String>() {
+                        @Override
+                        public String apply(AmigoUser amigoUser) {
+                            return amigoUser.getName();
+                        }
+                    }).collect(Collectors.toList())));
+            }
+
+        }
+        card.setContent(cardSB.toString());
+        return SpeechletResponse.newTellResponse(outputSpeech, card);
     }
 
     private SpeechletResponse listMedsResponse() {
