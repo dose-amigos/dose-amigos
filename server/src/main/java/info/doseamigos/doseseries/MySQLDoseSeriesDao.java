@@ -29,7 +29,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
             conn.setAutoCommit(false);
 
             //First, create the series row if now seriesId exists
-            Long seriesId = series.getSeriesId();
+            Long seriesId = series.getId();
             if (seriesId == null) {
                 PreparedStatement seriesRowStatement = conn.prepareStatement(
                     "INSERT INTO DOSESERIES(medId) VALUES (?)"
@@ -108,10 +108,10 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
             conn.setAutoCommit(false);
 
             //First, delete all future dose events
-            deleteFutureDoseEvents(conn, series.getSeriesId());
+            deleteFutureDoseEvents(conn, series.getId());
 
             //Second, delete all DoseSeriesItems
-            deleteDoseSeriesItems(conn, series.getSeriesId());
+            deleteDoseSeriesItems(conn, series.getId());
 
             //Lastly, mark the med as inactive
             PreparedStatement statement = conn.prepareStatement(
@@ -131,7 +131,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
     @Override
     public DoseSeries getById(Long id) {
         DoseSeries series = new DoseSeries();
-        series.setSeriesId(id);
+        series.setId(id);
         series.setDaysOfWeek(new ArrayList<Integer>());
         series.setTimesOfDay(new ArrayList<Date>());
         try (Connection conn = MySQLConnection.create()) {
@@ -243,7 +243,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                     series.getTimesOfDay().add(seriesTime);
                 }
             }
-            series.setSeriesId(seriesId);
+            series.setId(seriesId);
             series.setMed(med);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -289,7 +289,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
 
             while (rs.next()) {
                 DoseSeries series = new DoseSeries();
-                series.setSeriesId(rs.getLong("seriesId"));
+                series.setId(rs.getLong("seriesId"));
                 series.setMed(new MedRowMapper().mapRow(rs));
                 updateDaysAndTimes(conn, series);
                 allSeries.add(series);
@@ -311,7 +311,7 @@ public class MySQLDoseSeriesDao implements DoseSeriesDao {
                 "WHERE seriesId = ?"
         );
 
-        statement.setLong(1, series.getSeriesId());
+        statement.setLong(1, series.getId());
 
         ResultSet rs = statement.executeQuery();
         series.setDaysOfWeek(new ArrayList<Integer>());

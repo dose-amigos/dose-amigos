@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class DoseSeries {
 
-    private Long seriesId;
+    private Long id;
 
     private Med med;
 
@@ -21,12 +21,12 @@ public class DoseSeries {
 
     private List<Date> timesOfDay;
 
-    public Long getSeriesId() {
-        return seriesId;
+    public Long getId() {
+        return id;
     }
 
-    public void setSeriesId(Long seriesId) {
-        this.seriesId = seriesId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Med getMed() {
