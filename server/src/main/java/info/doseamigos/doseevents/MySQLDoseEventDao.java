@@ -41,7 +41,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
         return toRet;
     }
 
-    public Long createEvent(DoseEvent doseEvent, Long feedEventId, Connection conn) throws SQLException {
+    private Long createEvent(DoseEvent doseEvent, Long feedEventId, Connection conn) throws SQLException {
         Long toRet;PreparedStatement insertStatement = conn.prepareStatement(
             "INSERT INTO DOSEEVENTS(scheduledDoseTime, medId) " +
                 "VALUES (?, ?)"
@@ -59,6 +59,8 @@ public class MySQLDoseEventDao implements DoseEventDao {
         ResultSet rs = getIdStatement.executeQuery();
         rs.next();
         toRet = rs.getLong("doseEventId");
+
+        updateAmigoDatesDAO.updateAmigo(conn, doseEvent.getMed().getUser());
 
         if (feedEventId != null) {
             createFeedRel(conn, feedEventId, toRet);
@@ -266,6 +268,8 @@ public class MySQLDoseEventDao implements DoseEventDao {
         updateStatement.setLong(3, event.getDoseEventId());
 
         updateStatement.executeUpdate();
+
+        updateAmigoDatesDAO.updateAmigo(conn, event.getMed().getUser());
     }
 
     @Override

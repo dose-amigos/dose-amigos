@@ -93,7 +93,10 @@ public class MySQLShareRequestDao implements ShareRequestDao {
     }
 
     private long getAuthUserId(Connection conn, String email) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement("SELECT authUserId FROM AUTHUSERS WHERE email = ?");
+        PreparedStatement statement = conn.prepareStatement(
+            "SELECT authUserId " +
+                "FROM AUTHUSERS " +
+                "WHERE UPPER(email) = UPPER(?)");
         statement.setString(1, email);
         ResultSet rs = statement.executeQuery();
         if (!rs.next()) {
