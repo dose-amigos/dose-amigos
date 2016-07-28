@@ -1,6 +1,11 @@
 package info.doseamigos.doseevents;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +15,6 @@ import info.doseamigos.amigousers.UpdateAmigoDatesDAO;
 import info.doseamigos.db.MySQLConnection;
 import info.doseamigos.meds.Med;
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 
 /**
  * MySQL implementation of {@link DoseEventDao}.
@@ -152,6 +156,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "WHERE DOSEEVENTS.scheduledDoseTime < ? " +
                     "  AND AMIGOUSERS.amigouserid = ? " +
                     "  AND DOSEEVENTS.action IS NULL " +
+                    "  AND MEDS.active = 'Y' " +
                     "ORDER BY DOSEEVENTS.scheduledDoseTime ASC"
             );
             DateTime tomorrow = DateTime.now().plusDays(1);
@@ -204,6 +209,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "  AND DOSEEVENTS.scheduledDoseTime > ? " +
                     "  AND AMIGOUSERS.amigouserid = ? " +
                     "  AND DOSEEVENTS.action IS NULL " +
+                    "  AND MEDS.active = 'Y' " +
                     "ORDER BY DOSEEVENTS.scheduledDoseTime ASC"
             );
             DateTime now = DateTime.now();
@@ -359,6 +365,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "  ON MEDS.amigouserid = AMIGOUSERS.amigouserid " +
                     "WHERE DOSEEVENTS.scheduledDoseTime <= ? " +
                     "  AND DOSEEVENTS.action IS NULL " +
+                    "  AND MEDS.active = 'Y' " +
                     "ORDER BY AMIGOUSERS.amigouserid"
             );
 
