@@ -37,6 +37,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormatter;
+import org.omg.CORBA.StringHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,12 +85,17 @@ public class DoseAmigosSpeechlet implements Speechlet {
     public SpeechletResponse onLaunch(LaunchRequest request, Session session) throws SpeechletException {
         String name = sessionUser.getAmigoUser().getName();
         PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-        outputSpeech.setText("Welcome to Dose Amigos " + name + ", you can add a new medication.");
+        StringBuilder builder = new StringBuilder();
+        builder
+            .append("Welcome to Dose Amigos ")
+            .append(name)
+            .append(".  You can add a new medication, list your upcoming doses, take you medication, and check on your amigos.");
+        outputSpeech.setText(builder.toString());
         Reprompt reprompt = new Reprompt();
         reprompt.setOutputSpeech(outputSpeech);
         SimpleCard card = new SimpleCard();
         card.setTitle("Add New Medication");
-        card.setContent("Welcome to Dose Amigos, you can add a new medication.");
+        card.setContent(builder.toString());
         return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
     }
 
@@ -113,6 +119,18 @@ public class DoseAmigosSpeechlet implements Speechlet {
         String intentName = (intent != null) ? intent.getName() : "";
         log.info("input: " + request.getIntent().getSlots());
         switch (intentName) {
+            case "AMAZON.CancelIntent":
+            case "AMAZON.StopIntent":
+                log.info("Closing the app.");
+                PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+                outputSpeech.setText("Good Bye.");
+                return SpeechletResponse.newTellResponse(outputSpeech);
+            case "AMAZON.StartOverIntent":
+                log.info("Cancelling");
+                return SpeechletResponse.newAskResponse(new PlainTextOutputSpeech(), new Reprompt());
+            case "AMAZON.HelpIntent":
+                log.info("Return Help response");
+                return helpResponse();
             case "TakeMeds":
                 log.info("recording med taking");
                 return takeMeds();
@@ -146,6 +164,23 @@ public class DoseAmigosSpeechlet implements Speechlet {
             default:
                 throw new RuntimeException("Invalid Intent Name found.");
         }
+    }
+
+    private SpeechletResponse helpResponse() {
+        StringBuilder speech = new StringBuilder();
+        speech.append("You can say 'I would like to add a medication' to add a medication.  I will then give you specific instructions to follow.  ");
+        speech.append("You can say 'I would like to list my medications' to list your upcoming doses and their times.  ");
+        speech.append("You can say 'I have taken my meds' after taking your medication to update the system.  ");
+        speech.append("You can say 'I would like to check on my amigos' to get an update on your amigos.  See the Alexa App on your phone or computer for more details.");
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        outputSpeech.setText(speech.toString());
+        SimpleCard card = new SimpleCard();
+        card.setTitle("Help Request");
+        card.setContent(speech.toString());
+
+        Reprompt reprompt = new Reprompt();
+
+        return SpeechletResponse.newAskResponse(outputSpeech, reprompt, card);
     }
 
     private SpeechletResponse amigoUpdate() {

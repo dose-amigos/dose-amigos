@@ -159,7 +159,7 @@ public class MySQLDoseEventDao implements DoseEventDao {
                     "  AND MEDS.active = 'Y' " +
                     "ORDER BY DOSEEVENTS.scheduledDoseTime ASC"
             );
-            DateTime tomorrow = DateTime.now().plusDays(1);
+            DateTime tomorrow = DateTime.now().plusHours(8);
             statement.setTimestamp(1, new Timestamp(tomorrow.getMillis()));
             statement.setLong(2, amigoUser.getId());
 

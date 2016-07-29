@@ -178,7 +178,7 @@ public class DefaultDoseEventService implements DoseEventService {
                 long diff = abs(de.getScheduledDateTime().getTime() - nextDoseTime.getTime());
                 //If the event is within an hour of the start dose time of the events, add it.
                 //else break out of this loop as we ordered it by date and we're done
-                if (diff < (1000*60*60)) {
+                if (diff < (1000*60*15)) {
                     toRet.add(de);
                 } else {
                     break;
